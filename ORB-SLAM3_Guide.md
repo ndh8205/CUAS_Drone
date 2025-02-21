@@ -242,4 +242,3 @@ ros2 run orbslam3 mono /home/server/tools/ORB_SLAM3/Vocabulary/ORBvoc.txt /home/
 이제 위 단계를 순서대로 따라 실행하면, Pangolin 뷰어에서 실시간 SLAM 결과를 확인할 수 있습니다.
 
 Happy SLAMing!
-```
