@@ -1,4 +1,3 @@
-```markdown
 # ORB‑SLAM3 설치 및 ROS2 연동 실행 가이드
 
 이 가이드는 Ubuntu 22.04에서 ORB‑SLAM3를 설치, 빌드하고 ROS2 (Humble)와 연동하여 USB 웹캠(모노 입력)으로 실시간 SLAM을 구현하는 방법을 설명합니다.  
