@@ -14,7 +14,12 @@ Windows 관리자 권한으로 실행한 PowerShell에서:
 ```powershell
 wsl --install -d Ubuntu-22.04
 ```
-
+빠른 초기화를 위한 명령어:
+```bash
+wsl --terminate Ubuntu-22.04
+wsl --unregister Ubuntu-22.04
+wsl --install -d Ubuntu-22.04
+```
 재부팅 후 Ubuntu 사용자명, 암호 설정.
 
 ### 2. 시스템 업데이트
