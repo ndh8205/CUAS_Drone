@@ -2,8 +2,7 @@
 
 **환경:** Windows 10/11 (WSL2), Ubuntu 22.04  
 **목표:** Docker 없이 Space ROS Canadarm 시뮬레이션 환경 구축  
-**비고:** 이 가이드는 Open Robotics의 Dockerfile에서 사용된 모든 설정과 빌드 단계를 그대로 재현합니다.  
-(참고: 도커 이미지에서는 RTPS/DDS, ros2_control, 통신 모듈, MongoDB C++ 드라이버 빌드 및 EP_mnmlstc_core 문제 등이 미리 처리되어 있습니다.)
+**비고:** 이 가이드는 Open Robotics의 Dockerfile에서 사용한 모든 설정과 빌드 과정을 그대로 재현합니다.
 
 ---
 
@@ -15,44 +14,110 @@
 5. [워크스페이스 소스 클론 및 빌드 준비](#5-워크스페이스-소스-클론-및-빌드-준비)
    - 5.1. Space ROS 소스 클론 (simulation, demos)
    - 5.2. warehouse_ros_mongo 소스 클론 (ROS2 브랜치)
-6. [MongoDB C++ 드라이버 빌드 및 설치 (EP_mnmlstc_core 문제 처리 포함)](#6-mongodb-c-드라이버-빌드-및-설치)
+6. [MongoDB C++ 드라이버 빌드 및 설치 (EP_mnmlstc_core 처리)](#6-mongodb-c-드라이버-빌드-및-설치)
 7. [데모 의존성 소스 코드 가져오기 (통신 모듈 포함 & repos 파일 자동 생성)](#7-데모-의존성-소스-코드-가져오기)
-8. [의존성 설치 및 전체 빌드 (warehouse_ros_mongo 건너뛰기)](#8-의존성-설치-및-전체-빌드)
-9. [중복 패키지 제거 (warehouse_ros_mongo)](#9-중복-패키지-제거)
-10. [환경 변수 및 추가 설정 적용](#10-환경-변수-및-추가-설정-적용)
-11. [X서버(VcXsrv) 및 GUI 설정](#11-x서버vcxsrv-및-gui-설정)
-12. [OpenGL 문제 해결 (소프트웨어 렌더링)](#12-opengl-문제-해결)
-13. [ROS 작업공간 실행 및 Canadarm 시뮬레이션 실행](#13-ros-작업공간-실행-및-canadarm-시뮬레이션-실행)
-14. [GPU 사용 시 사용자 그룹 추가](#14-gpu-사용-시-사용자-그룹-추가)
-15. [자주 발생하는 오류 및 해결책](#15-자주-발생하는-오류-및-해결책)
-16. [설치 프로그램 및 명령어의 역할](#16-설치-프로그램-및-명령어의-역할)
-17. [마무리 및 추가 자료](#17-마무리-및-추가-자료)
+8. [의존성 설치 및 전체 빌드](#8-의존성-설치-및-전체-빌드)
+9. [환경 변수 및 추가 설정 적용](#9-환경-변수-및-추가-설정-적용)
+10. [X서버(VcXsrv) 및 GUI 설정](#10-x서버vcxsrv-및-gui-설정)
+11. [OpenGL 문제 해결 (소프트웨어 렌더링)](#11-opengl-문제-해결)
+12. [ROS 작업공간 실행 및 Canadarm 시뮬레이션 실행](#12-ros-작업공간-실행-및-canadarm-시뮬레이션-실행)
+13. [GPU 사용 시 사용자 그룹 추가](#13-gpu-사용-시-사용자-그룹-추가)
+14. [자주 발생하는 오류 및 해결책](#14-자주-발생하는-오류-및-해결책)
+15. [설치 프로그램 및 명령어의 역할](#15-설치-프로그램-및-명령어의-역할)
+16. [마무리 및 추가 자료](#16-마무리-및-추가-자료)
 
 ---
 
 ## 1. WSL2 환경 설정
 
-*(이전 내용 동일)*
+### 1.1 Ubuntu 22.04 설치
+Windows CMD/PowerShell에서:
+```powershell
+wsl --install -d Ubuntu-22.04
+```
+
+### 1.2 WSL2 자원 제한 (선택 권장)
+`C:\Users\<사용자명>\.wslconfig` 파일에 다음 내용을 작성:
+```ini
+[wsl2]
+memory=8GB
+processors=4
+swap=2GB
+```
+적용 후:
+```cmd
+wsl --shutdown
+```
+(필요 시 빠른 초기화를 위해)
+```bash
+wsl --terminate Ubuntu-22.04
+wsl --unregister Ubuntu-22.04
+wsl --install -d Ubuntu-22.04
+```
+재부팅 후 Ubuntu 사용자명 및 암호 설정.
 
 ---
 
 ## 2. ROS2 Humble 설치
 
-*(이전 내용 동일)*
+### 2.1 Locale 설정
+```bash
+sudo apt update && sudo apt install -y locales
+sudo locale-gen en_US en_US.UTF-8
+sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
+```
+
+### 2.2 ROS2 저장소 키 및 저장소 추가
+```bash
+sudo apt install -y curl gnupg2 lsb-release
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+```
+
+### 2.3 ROS2 Humble 설치
+```bash
+sudo apt update
+sudo apt install -y ros-humble-desktop python3-colcon-common-extensions python3-rosdep python3-vcstool
+```
+
+### 2.4 추가 ROS 개발 도구 (선택)
+```bash
+sudo apt install -y python3-pip python3-colcon-mixin python3-flake8 python3-pytest-cov python3-rosinstall-generator ros-humble-ament-* ros-humble-ros-testing ros-humble-eigen3-cmake-module
+```
+
+### 2.5 ROS2 환경 설정
+```bash
+echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+sudo rosdep init || true
+rosdep update
+colcon mixin add default https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml
+colcon mixin update
+```
+
+### 2.6 설치 확인
+```bash
+ros2 --help
+ros2 topic list
+printenv ROS_DISTRO  # "humble" 출력 확인
+```
 
 ---
 
 ## 3. 필수 패키지 설치
-
-*(이전 내용 동일)*
+```bash
+sudo apt install -y ros-humble-ros-gz ros-humble-moveit ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-joint-state-publisher ros-humble-xacro ros-humble-ros-ign-bridge libasio-dev git-lfs
+```
 
 ---
 
 ## 4. Gazebo(Ignition) 및 ROS 관련 패키지 설치
 
-*(이전 내용 동일)*
-
----
+```bash
+sudo apt install -y ros-humble-ros-gz ros-humble-ign-ros2-control ros-humble-joint-state-publisher-gui ros-humble-xacro ros-humble-robot-state-publisher ros-humble-controller-manager
+sudo apt install -y ros-humble-warehouse-ros-sqlite
+```
 
 ## 5. 워크스페이스 소스 클론 및 빌드 준비
 
