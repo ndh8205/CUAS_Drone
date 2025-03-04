@@ -286,6 +286,10 @@ source ~/.bashrc
 2. **Canadarm 시뮬레이션 실행:**
    ```bash
    ros2 launch canadarm canadarm.launch.py robot_description_file:=$(ros2 pkg prefix simulation)/share/simulation/models/canadarm/urdf/SSRMS_Canadarm2.urdf.xacro
+
+   ros2 launch canadarm_moveit_config demo.launch.py
+
+   ros2 launch canadarm canadarm.launch.py
    ```
    - **설명:**  
      이 명령어는 Canadarm 시뮬레이션을 실행하며, 외부 파일로부터 URDF를 불러옵니다.  
