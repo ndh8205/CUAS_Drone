@@ -92,6 +92,14 @@ Docker를 사용하면 복잡한 의존성 문제 없이 필요한 환경을 컨
    ```
    - 스크립트는 `--network host` 옵션과 DISPLAY 환경변수를 전달해 GUI 앱 (Gazebo, RViz) 실행을 지원합니다.
    - GPU 옵션(`--gpus all`)이 포함되어 있으니, GPU가 없는 경우 해당 옵션을 제거하세요.
+   ```bash
+  
+     docker run -it --rm \
+        --network host \
+        -e DISPLAY=$DISPLAY \
+        -v /tmp/.X11-unix:/tmp/.X11-unix \
+        openrobotics/space_robots_demo:latest
+   ```
 
 2. **컨테이너 내부에서 데모 실행**
    - **Curiosity Mars 로버 데모** 실행:
