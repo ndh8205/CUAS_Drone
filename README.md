@@ -1,4 +1,6 @@
-![image](https://github.com/user-attachments/assets/c4f02da6-0615-4603-97ef-119bb74ef911)# WSL2 Ubuntu 20.04 PX4/Gazebo 시뮬레이션 환경 구축 완전 가이드
+![image](https://github.com/user-attachments/assets/c4f02da6-0615-4603-97ef-119bb74ef911)
+# WSL2 Ubuntu 20.04 PX4/Gazebo 시뮬레이션 환경 구축 완전 가이드
+## 옛날 버전이라서 위의 md파일들에 있는 내용 참고
 
 ## 목차
 
