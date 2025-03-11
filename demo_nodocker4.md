@@ -232,6 +232,13 @@ colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 source install/setup.bash
 ```
 *설명:*  
+내 컴퓨터가 너무 구리다면 아래의 옵션을 사용하자
+
+```bash
+MAKEFLAGS="-j1" colcon build --symlink-install --parallel-workers 1 --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-O1" --allow-overriding joint_trajectory_controller qt_gui qt_gui_cpp
+```
+
+*설명:*  
 위 명령어는 모든 소스(시뮬레이션, 데모, warehouse_ros_mongo 등)를 빌드하기 전에, warehouse_ros_mongo에 대한 의존성은 별도로 빌드했으므로 건너뛰도록 합니다.
   
 > **주의:** Duplicate package 오류가 발생하면, 두 개의 warehouse_ros_mongo 패키지가 소스 내에 중복되어 있는지 확인하고, 하나(예: apt에서 내려받은 버전 또는 repos 파일에서 내려받은 버전)를 삭제하세요.  
@@ -284,15 +291,10 @@ source ~/.bashrc
 ---
 
 ## 12. ROS 작업공간 실행 및 Canadarm 시뮬레이션 실행
-1. **Workspace 빌드 (재확인):**
+
+1. **Canadarm 시뮬레이션 실행:**
    ```bash
-   cd ~/space_ros_ws
-   colcon build --symlink-install --cmake-clean-cache
-   source install/setup.bash
-   ```
-2. **Canadarm 시뮬레이션 실행:**
-   ```bash
-   ros2 launch canadarm canadarm.launch.py robot_description_file:=$(ros2 pkg prefix simulation)/share/simulation/models/canadarm/urdf/SSRMS_Canadarm2.urdf.xacro
+   ros2 launch canadarm canadarm.launch.py
    ```
    또는 (MoveIt 데모 실행)
    ```bash
