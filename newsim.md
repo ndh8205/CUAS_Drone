@@ -116,7 +116,6 @@ sudo apt install -y ros-humble-ros-gz ros-humble-moveit ros-humble-ros2-control 
 
 ```bash
 sudo apt install -y ros-humble-ros-gz ros-humble-ign-ros2-control ros-humble-joint-state-publisher-gui ros-humble-xacro ros-humble-robot-state-publisher ros-humble-controller-manager
-sudo apt install -y ros-humble-warehouse-ros-sqlite
 ```
 
 ## 5. 워크스페이스 소스 클론 및 빌드 준비
