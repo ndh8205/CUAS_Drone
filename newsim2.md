@@ -26,10 +26,34 @@
 ---
 
 ## 📌 1. WSL2 환경 설정
+
 ### 1.1 Ubuntu 22.04 설치
+Windows CMD/PowerShell에서:
 ```powershell
 wsl --install -d Ubuntu-22.04
 ```
+
+### 1.2 WSL2 자원 제한 (선택 권장)
+`C:\Users\<사용자명>\.wslconfig` 파일에 다음 내용을 작성:
+```ini
+[wsl2]
+memory=8GB
+processors=4
+swap=2GB
+```
+적용 후:
+```cmd
+wsl --shutdown
+```
+(필요 시 빠른 초기화를 위해)
+```bash
+wsl --terminate Ubuntu-22.04
+wsl --unregister Ubuntu-22.04
+wsl --install -d Ubuntu-22.04
+```
+재부팅 후 Ubuntu 사용자명 및 암호 설정.
+
+---
 
 ---
 
