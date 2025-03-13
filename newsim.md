@@ -1,4 +1,4 @@
-# 🚀 WSL2 Ubuntu 22.04에서 Space ROS Canadarm 시뮬레이션 구축 가이드 (Dockerfile 방식)
+# 🚀 WSL2 Ubuntu 22.04에서 Space ROS Canadarm 시뮬레이션 구축 가이드
 
 **환경:** Windows 10/11 (WSL2), Ubuntu 22.04  
 **목표:** Docker 없이 Space ROS Canadarm 시뮬레이션 환경 구축  
@@ -13,18 +13,15 @@
 4. [Gazebo(Ignition) 및 ROS 관련 패키지 설치](#4-gazeboirgnition-및-ros-관련-패키지-설치)
 5. [워크스페이스 소스 클론 및 빌드 준비](#5-워크스페이스-소스-클론-및-빌드-준비)
    - 5.1. Space ROS 소스 클론 (simulation, demos)
-   - 5.2. warehouse_ros_mongo 소스 클론 (ROS2 브랜치)
-6. [MongoDB C++ 드라이버 빌드 및 설치 (EP_mnmlstc_core 처리)](#6-mongodb-c-드라이버-빌드-및-설치)
-7. [데모 의존성 소스 코드 가져오기 (통신 모듈 포함 & repos 파일 자동 생성)](#7-데모-의존성-소스-코드-가져오기)
-8. [의존성 설치 및 전체 빌드](#8-의존성-설치-및-전체-빌드)
-9. [환경 변수 및 추가 설정 적용](#9-환경-변수-및-추가-설정-적용)
-10. [X서버(VcXsrv) 및 GUI 설정](#10-x서버vcxsrv-및-gui-설정)
-11. [OpenGL 문제 해결 (소프트웨어 렌더링)](#11-opengl-문제-해결)
-12. [ROS 작업공간 실행 및 Canadarm 시뮬레이션 실행](#12-ros-작업공간-실행-및-canadarm-시뮬레이션-실행)
-13. [GPU 사용 시 사용자 그룹 추가](#13-gpu-사용-시-사용자-그룹-추가)
-14. [자주 발생하는 오류 및 해결책](#14-자주-발생하는-오류-및-해결책)
-15. [설치 프로그램 및 명령어의 역할](#15-설치-프로그램-및-명령어의-역할)
-16. [마무리 및 추가 자료](#16-마무리-및-추가-자료)
+6. [의존성 설치 및 전체 빌드](#8-의존성-설치-및-전체-빌드)
+7. [환경 변수 및 추가 설정 적용](#9-환경-변수-및-추가-설정-적용)
+8. [X서버(VcXsrv) 및 GUI 설정](#10-x서버vcxsrv-및-gui-설정)
+9. [OpenGL 문제 해결 (소프트웨어 렌더링)](#11-opengl-문제-해결)
+10. [ROS 작업공간 실행 및 Canadarm 시뮬레이션 실행](#12-ros-작업공간-실행-및-canadarm-시뮬레이션-실행)
+11. [GPU 사용 시 사용자 그룹 추가](#13-gpu-사용-시-사용자-그룹-추가)
+12. [자주 발생하는 오류 및 해결책](#14-자주-발생하는-오류-및-해결책)
+13. [설치 프로그램 및 명령어의 역할](#15-설치-프로그램-및-명령어의-역할)
+14. [마무리 및 추가 자료](#16-마무리-및-추가-자료)
 
 ---
 
@@ -131,98 +128,7 @@ git clone https://github.com/space-ros/demos.git
 - **simulation:** Canadarm URDF, 모델, Gazebo 월드 파일  
 - **demos:** Canadarm 시뮬레이션 데모 코드 및 launch 파일
 
-### 5.2 warehouse_ros_mongo 소스 클론 (ROS2 브랜치)
-```bash
-cd ~/space_ros_ws/src
-git clone -b ros2 https://github.com/ros-planning/warehouse_ros_mongo.git
-```
-*주의:* 반드시 ROS2용 브랜치를 사용합니다.
-
----
-
-## 6. MongoDB C++ 드라이버 빌드 및 설치 (EP_mnmlstc_core 문제 처리 포함)
-1. **필수 의존성 설치**
-   ```bash
-   sudo apt install -y libssl-dev build-essential devscripts debian-keyring fakeroot debhelper cmake libboost-dev libsasl2-dev libicu-dev libzstd-dev doxygen
-   ```
-2. **libmongoc-dev 설치** (Ubuntu 22.04에서는 제공됨)
-   ```bash
-   sudo apt install -y libmongoc-dev
-   ```
-3. **MongoDB C++ 드라이버 다운로드 및 빌드**
-   ```bash
-   wget https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.6.7/mongo-cxx-driver-r3.6.7.tar.gz
-   tar -xzf mongo-cxx-driver-r3.6.7.tar.gz
-   cd mongo-cxx-driver-r3.6.7/build
-   cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_VERSION=3.6.7
-   sudo cmake --build . --target EP_mnmlstc_core
-   cmake --build .
-   sudo cmake --build . --target install
-   cd ../../
-   ```
-> **참고:** 도커 이미지에서는 EP_mnmlstc_core 문제를 패치하여 install 단계가 무시되거나 dummy install 규칙을 적용합니다. 로컬에서는 중복 오류를 피하기 위해 필요 시 해당 패치를 적용하세요.
-
----
-
-## 7. 데모 의존성 소스 코드 가져오기 (통신 모듈 포함 & repos 파일 자동 생성)
-1. **repos 파일 생성 (자동 복붙)**
-   ```bash
-   cat << 'EOF' > ~/space_ros_ws/src/demo_manual_pkgs.repos
-   repositories:
-     demos:
-       type: git
-       url: https://github.com/space-ros/demos.git
-       version: main
-     gz_ros2_control:
-       type: git
-       url: https://github.com/ros-controls/gz_ros2_control.git
-       version: humble
-     qt_gui_core:
-       type: git
-       url: https://github.com/ros-visualization/qt_gui_core.git
-       version: humble
-     ros2_controllers:
-       type: git
-       url: https://github.com/tonylitianyu/ros2_controllers.git
-       version: effort_group_position_controller_2
-     actuator_msgs:
-       type: git
-       url: https://github.com/rudislabs/actuator_msgs.git
-       version: main
-     ros_gz:
-       type: git
-       url: https://github.com/gazebosim/ros_gz.git
-       version: humble
-     simulation:
-       type: git
-       url: https://github.com/space-ros/simulation.git
-       version: main
-     ros-humble-warehouse-ros-mongo:
-       type: git
-       url: https://github.com/moveit/warehouse_ros_mongo.git
-       version: ros2
-     vision_msgs:
-       type: git
-       url: https://github.com/ros-perception/vision_msgs.git
-       version: ros2
-     gps_msgs:
-       type: git
-       url: https://github.com/swri-robotics/gps_umd.git
-       path: gps_msgs
-       version: 113782d
-   EOF
-   ```
-2. **소스 코드 내려받기**
-   ```bash
-   cd ~/space_ros_ws/src
-   vcs import < ~/space_ros_ws/src/demo_manual_pkgs.repos
-   ```
-*설명:*  
-이 과정에서 데모 실행에 필요한 통신 모듈 및 기타 의존 소스 코드가 중복 없이 내려받아집니다.
-
----
-
-## 8. 의존성 설치 및 전체 빌드 (warehouse_ros_mongo 건너뛰기)
+## 6. 의존성 설치 및 전체 빌드
 ```bash
 cd ~/space_ros_ws
 rosdep update
