@@ -1,7 +1,7 @@
-# 🚀 WSL2 Ubuntu 22.04에서 Space ROS Canadarm 시뮬레이션 구축 가이드 (Gazebo Harmonic)
+# 🚀 WSL2 Ubuntu 22.04에서 Space ROS Canadarm 시뮬레이션 구축 가이드
 
 **환경:** Windows 10/11 (WSL2), Ubuntu 22.04  
-**목표:** Docker 없이 Space ROS Canadarm 시뮬레이션 환경 구축 (Gazebo Harmonic 사용)  
+**목표:** Docker 없이 Space ROS Canadarm 시뮬레이션 환경 구축  
 **비고:** 이 가이드는 Open Robotics의 Dockerfile에서 사용한 모든 설정과 빌드 과정을 그대로 재현합니다.
 
 ---
@@ -12,12 +12,12 @@
 3. [필수 패키지 설치](#3-필수-패키지-설치)
 4. [Gazebo Harmonic 및 ROS 관련 패키지 설치](#4-gazebo-harmonic-및-ros-관련-패키지-설치)
 5. [워크스페이스 소스 클론 및 빌드 준비](#5-워크스페이스-소스-클론-및-빌드-준비)
-   - 5.1 Space ROS 소스 클론 (simulation, demos)
+   - 5.1. Space ROS 소스 클론 (simulation, demos)
 6. [의존성 설치 및 전체 빌드](#6-의존성-설치-및-전체-빌드)
 7. [환경 변수 및 추가 설정 적용](#7-환경-변수-및-추가-설정-적용)
 8. [X서버(VcXsrv) 및 GUI 설정](#8-x서버vcxsrv-및-gui-설정)
 9. [OpenGL 문제 해결 (소프트웨어 렌더링)](#9-opengl-문제-해결)
-10. [ROS 작업공간 실행 및 Canadarm 시뮬레이션 실행](#10-ros-작업공간-및-canadarm-시뮬레이션-실행)
+10. [ROS 작업공간 실행 및 Canadarm 시뮬레이션 실행](#10-ros-작업공간-실행-및-canadarm-시뮬레이션-실행)
 11. [GPU 사용 시 사용자 그룹 추가](#11-gpu-사용-시-사용자-그룹-추가)
 12. [자주 발생하는 오류 및 해결책](#12-자주-발생하는-오류-및-해결책)
 13. [설치 프로그램 및 명령어의 역할](#13-설치-프로그램-및-명령어의-역할)
@@ -25,7 +25,7 @@
 
 ---
 
-## 📌 1. WSL2 환경 설정
+## 1. WSL2 환경 설정
 
 ### 1.1 Ubuntu 22.04 설치
 Windows CMD/PowerShell에서:
@@ -55,9 +55,7 @@ wsl --install -d Ubuntu-22.04
 
 ---
 
----
-
-## 📌 2. ROS2 Humble 설치
+## 2. ROS2 Humble 설치
 
 ### 2.1 Locale 설정
 ```bash
@@ -103,33 +101,23 @@ printenv ROS_DISTRO  # "humble" 출력 확인
 ```
 
 ---
----
 
-## 📌 3. 필수 패키지 설치
+## 3. 필수 패키지 설치
 ```bash
-sudo apt install -y python3-colcon-common-extensions ros-humble-moveit ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-joint-state-publisher ros-humble-xacro ros-humble-robot-state-publisher ros-humble-controller-manager libasio-dev git-lfs
+sudo apt install -y ros-humble-ros-gz ros-humble-moveit ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-joint-state-publisher ros-humble-xacro ros-humble-ros-ign-bridge libasio-dev git-lfs
 ```
 
 ---
 
-## 📌 4. Gazebo Harmonic 및 ROS 관련 패키지 설치
-
-### 4.1 OSRF Gazebo 패키지 저장소 추가
+## 4. Gazebo Harmonic 및 ROS 관련 패키지 설치
+아래 명령어는 Gazebo Harmonic 설치와 ROS 연동에 필요한 패키지들을 설치합니다.
 ```bash
-sudo apt install -y wget lsb-release gnupg
-sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list
-```
-
-### Gazebo Harmonic 설치
-```bash
-sudo apt update
-sudo apt install -y gz-harmonic ros-humble-ros-gz ros-humble-gz-ros2-control
+sudo apt install -y gz-harmonic ros-humble-ros-gz ros-humble-gz-ros2-control ros-humble-joint-state-publisher-gui ros-humble-xacro ros-humble-robot-state-publisher ros-humble-controller-manager
 ```
 
 ---
 
-## 📌 5. 워크스페이스 소스 클론 및 빌드 준비
+## 5. 워크스페이스 소스 클론 및 빌드 준비
 
 ### 5.1 Space ROS 소스 클론 (simulation, demos)
 ```bash
@@ -139,12 +127,12 @@ git clone https://github.com/space-ros/simulation.git
 git clone https://github.com/space-ros/demos.git
 ```
 *설명:*  
-- **simulation:** Canadarm 모델, Gazebo 월드 파일  
+- **simulation:** Canadarm URDF, 모델, Gazebo 월드 파일  
 - **demos:** Canadarm 시뮬레이션 데모 코드 및 launch 파일
 
 ---
 
-## 📌 6. 의존성 설치 및 전체 빌드
+## 6. 의존성 설치 및 전체 빌드
 ```bash
 cd ~/space_ros_ws
 rosdep update
@@ -152,15 +140,26 @@ rosdep install --from-paths src --ignore-src -r -y --skip-keys warehouse_ros_mon
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 source install/setup.bash
 ```
+*설명:*  
+내 컴퓨터가 너무 구리다면 아래의 옵션을 사용하자
 
-(성능 제한 빌드)
 ```bash
 MAKEFLAGS="-j1" colcon build --symlink-install --parallel-workers 1 --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-O1" --allow-overriding joint_trajectory_controller qt_gui qt_gui_cpp
 ```
 
+*설명:*  
+위 명령어는 모든 소스(시뮬레이션, 데모, warehouse_ros_mongo 등)를 빌드하기 전에, warehouse_ros_mongo에 대한 의존성은 별도로 빌드했으므로 건너뛰도록 합니다.
+  
+> **주의:** Duplicate package 오류가 발생하면, 두 개의 warehouse_ros_mongo 패키지가 소스 내에 중복되어 있는지 확인하고, 하나(예: apt에서 내려받은 버전 또는 repos 파일에서 내려받은 버전)를 삭제하세요.  
+> 예시:
+> ```bash
+> rm -rf ~/space_ros_ws/src/ros-humble-warehouse-ros-mongo
+> ```
+> 또는 필요에 따라 적절히 정리합니다.
+
 ---
 
-## 📌 7. 환경 변수 및 추가 설정 적용
+## 7. 환경 변수 및 추가 설정 적용
 ```bash
 echo "source ~/space_ros_ws/install/setup.bash" >> ~/.bashrc
 echo "export GZ_SIM_RESOURCE_PATH=\$GZ_SIM_RESOURCE_PATH:~/space_ros_ws/install/simulation/share/simulation/models" >> ~/.bashrc
@@ -169,58 +168,116 @@ source ~/.bashrc
 
 ---
 
-## 📌 8. X서버(VcXsrv) 및 GUI 설정
-- [VcXsrv 설치링크](https://sourceforge.net/projects/vcxsrv/)
-- DISPLAY 환경변수 설정:
-```bash
-echo "export DISPLAY=$(grep nameserver /etc/resolv.conf | awk '{print $2}'):0" >> ~/.bashrc
-source ~/.bashrc
-```
+## 8. X서버(VcXsrv) 및 GUI 설정
+1. **VcXsrv 다운로드:**  
+   [VcXsrv 다운로드](https://sourceforge.net/projects/vcxsrv/)
+2. **XLaunch 설정:**  
+   - Multiple windows 선택  
+   - Display Number: 0  
+   - Start no client 선택  
+   - Disable access control 체크
+3. **WSL2에서 DISPLAY 환경 변수 설정:**
+   ```bash
+   echo "export DISPLAY=$(grep nameserver /etc/resolv.conf | awk '{print $2}'):0" >> ~/.bashrc
+   source ~/.bashrc
+   ```
+4. **테스트:**
+   ```bash
+   sudo apt install -y x11-apps
+   xeyes
+   ```
+*설명:* xeyes 창이 뜨면 X 서버 연결이 정상입니다. (DISPLAY는 `:0`이어야 합니다)
 
 ---
 
-## 📌 9. OpenGL 문제 해결 (소프트웨어 렌더링)
+## 9. OpenGL 문제 해결 (소프트웨어 렌더링)
 ```bash
 echo "export LIBGL_ALWAYS_SOFTWARE=1" >> ~/.bashrc
 source ~/.bashrc
 ```
+*설명:* GPU 대신 CPU 기반 소프트웨어 렌더링을 강제하여 OpenGL 오류를 회피합니다. (성능 저하 가능)
 
 ---
 
-## 📌 10. ROS 작업공간 및 Canadarm 시뮬레이션 실행
-### 10.1 시뮬레이션 실행
-```bash
-ros2 launch canadarm canadarm.launch.py
-# MoveIt 연동
-ros2 launch canadarm_moveit_config demo.launch.py
-```
+## 10. ROS 작업공간 실행 및 Canadarm 시뮬레이션 실행
+
+1. **Canadarm 시뮬레이션 실행:**
+   ```bash
+   ros2 launch canadarm canadarm.launch.py
+   ```
+   또는 (MoveIt 데모 실행)
+   ```bash
+   ros2 launch canadarm_moveit_config demo.launch.py
+   ```
+*설명:* 정상 실행 시, Gazebo 창에 로봇 모델이 나타납니다.
 
 ---
 
-## 📌 11. GPU 사용 시 사용자 그룹 추가
+## 11. GPU 사용 시 사용자 그룹 추가
 ```bash
 sudo usermod -aG render $USER
 ```
+*참고:* 재부팅 후 적용
 
 ---
 
-## 📌 12. 자주 발생하는 오류 및 해결책
-| 오류 | 원인 | 해결책 |
-|---|---|---|
-|`rosdep init` 실패| 이미 초기화됨| `rosdep update`만 수행|
-|OpenGL 오류|GPU 가속 불가|LIBGL_ALWAYS_SOFTWARE=1 설정|
-|Gazebo 실행 실패| DISPLAY 설정 문제, GPU 가속 문제|VcXsrv 옵션 설정 확인, LIBGL_ALWAYS_SOFTWARE|
+## 12. 자주 발생하는 오류 및 해결책
+
+| **오류 메시지**                                      | **원인**                                         | **해결책**                                                            |
+|------------------------------------------------------|--------------------------------------------------|-----------------------------------------------------------------------|
+| `rosdep init` 이미 초기화됨                           | rosdep이 이미 초기화됨                             | 무시하고 `rosdep update` 실행                                           |
+| `colcon mixin add` 오류                                | colcon-mixin 미설치                                | `sudo apt install python3-colcon-mixin -y` 후 재시도                     |
+| OpenGL/GLX 오류 ("Failed to create OpenGL context")    | GPU 가속/X 서버 설정 문제                          | `export LIBGL_ALWAYS_SOFTWARE=1`로 설정                                 |
+| Gazebo 창이 검은 화면에서 바로 꺼짐                  | X서버 설정 불량 또는 OpenGL 오류                   | VcXsrv "Disable access control" 체크, DISPLAY=:0, LIBGL_ALWAYS_SOFTWARE 적용 |
+| `ros2 control load_controller` 서비스 오류          | Gazebo 실행 또는 컨트롤러 초기화 타이밍 문제          | Gazebo 및 컨트롤러 매니저 초기화 상태 확인 후 재시도                       |
+| Duplicate package "warehouse_ros_mongo" 오류        | apt 패키지와 소스 클론(또는 repos 파일) 중복         | 소스 빌드를 위해 apt 패키지 제거(또는 repos 파일을 통해 한 번만 내려받기)  |
 
 ---
 
-## 📌 13. 설치 프로그램 및 명령어 역할
-- **Gazebo Harmonic**: 시뮬레이션 환경 (최신 LTS)
-- **ROS2 Humble**: 로봇 운영체제 핵심 프레임워크
-- **VcXsrv**: GUI 지원을 위한 X 서버
+## 13. 설치 프로그램 및 명령어의 역할
+
+### WSL2 및 Ubuntu 22.04
+- **역할:** Windows에서 리눅스 환경 제공 (ROS2, Gazebo 등 실행)
+
+### ROS2 Humble
+- **역할:** 로봇 소프트웨어 개발 핵심 프레임워크  
+- **설치 이유:**  
+  - `ros-humble-desktop`: 기본 GUI 도구 및 기능 포함  
+  - `colcon`: 다중 ROS 패키지 빌드  
+  - `rosdep`: 의존성 자동 설치
+
+### Gazebo Harmonic
+- **역할:** 가상 시뮬레이션 환경 제공 (최신 LTS 버전)  
+- **설치 이유:** ROS2와 연동하여 로봇 동작 테스트 및 최신 OGRE2 기반 렌더링 제공
+
+### X서버 (VcXsrv)
+- **역할:** WSL2에서 GUI 애플리케이션 화면 표시  
+- **설치 이유:** Gazebo, Rviz 등 실행
+
+### OpenGL 관련 환경 변수
+- **LIBGL_ALWAYS_SOFTWARE:** 소프트웨어 렌더링 강제 (오류 회피)  
+- **DISPLAY:** X 서버 연결 설정
+
+### 통신 모듈 및 데모 의존성
+- **역할:**  
+  - `gz_ros2_control`, `ros_gz`, `ros2_controllers`, `actuator_msgs` 등은 시뮬레이션 통신 및 제어에 필수  
+  - demo_manual_pkgs.repos를 통해 자동으로 내려받아 빌드
+
+### MongoDB C++ 드라이버 및 EP_mnmlstc_core 문제 처리
+- **문제:** MongoDB C++ 드라이버 빌드시 EP_mnmlstc_core의 install 단계 오류 발생  
+- **해결:**  
+  - Ubuntu 22.04에서는 libmongoc-dev 설치로 필요한 CMake 구성 파일을 확보  
+  - 도커 이미지에서는 해당 문제를 패치(또는 install 단계 무시)하여 해결됨  
+  - 로컬에서는 EP_mnmlstc_core의 CMakeLists.txt에 dummy install 규칙 추가하거나, 중복 패키지 제거를 통해 해결
 
 ---
 
-## 📌 14. 마무리 및 추가 자료
+## 14. 마무리 및 추가 자료
+
+모든 설정과 빌드를 완료하면, WSL2 환경에서 ROS2 Humble, Gazebo Harmonic, 그리고 Canadarm 시뮬레이션을 안정적으로 실행할 수 있습니다.  
+이 가이드는 Open Robotics의 Dockerfile에서 수행된 모든 단계(소스 클론, 의존성 설치, MongoDB C++ 드라이버 빌드 및 EP_mnmlstc_core 처리, repos 파일 자동 생성, 중복 패키지 제거, 사용자 그룹 추가 등)를 로컬에서도 동일하게 재현할 수 있도록 구성되었습니다.
+
+**추가 자료:**
 - [ROS2 Humble 공식 문서](https://docs.ros.org/en/humble/)
-- [Gazebo Harmonic 공식 문서](https://gazebosim.org/docs/harmonic)
-- [Space ROS GitHub](https://github.com/space-ros)
+- [Space ROS 공식 리포지토리](https://github.com/space-ros)
+- [VcXsrv 다운로드 및 설정 안내](https://sourceforge.net/projects/vcxsrv/)
