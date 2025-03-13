@@ -34,8 +34,51 @@ wsl --install -d Ubuntu-22.04
 ---
 
 ## 📌 2. ROS2 Humble 설치
-기존 가이드와 동일 (생략)
 
+### 2.1 Locale 설정
+```bash
+sudo apt update && sudo apt install -y locales
+sudo locale-gen en_US en_US.UTF-8
+sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
+```
+
+### 2.2 ROS2 저장소 키 및 저장소 추가
+```bash
+sudo apt install -y curl gnupg2 lsb-release
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+```
+
+### 2.3 ROS2 Humble 설치
+```bash
+sudo apt update
+sudo apt install -y ros-humble-desktop python3-colcon-common-extensions python3-rosdep python3-vcstool
+```
+
+### 2.4 추가 ROS 개발 도구 (선택)
+```bash
+sudo apt install -y python3-pip python3-colcon-mixin python3-flake8 python3-pytest-cov python3-rosinstall-generator ros-humble-ament-* ros-humble-ros-testing ros-humble-eigen3-cmake-module
+```
+
+### 2.5 ROS2 환경 설정
+```bash
+echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+sudo rosdep init || true
+rosdep update
+colcon mixin add default https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml
+colcon mixin update
+```
+
+### 2.6 설치 확인
+```bash
+ros2 --help
+ros2 topic list
+printenv ROS_DISTRO  # "humble" 출력 확인
+```
+
+---
 ---
 
 ## 📌 3. 필수 패키지 설치
