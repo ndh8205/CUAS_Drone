@@ -118,7 +118,7 @@ printenv ROS_DISTRO  # "jazzy" 출력 확인
 
 ## 3. 필수 패키지 설치
 ```bash
-sudo apt install -y ros-jazzy-ros-gz ros-jazzy-moveit ros-jazzy-ros2-control ros-jazzy-ros2-controllers ros-jazzy-joint-state-publisher ros-jazzy-xacro ros-jazzy-ros-ign-bridge libasio-dev git-lfs
+sudo apt install -y ros-jazzy-ros-gz ros-jazzy-moveit ros-jazzy-ros2-control ros-jazzy-ros2-controllers ros-jazzy-joint-state-publisher ros-jazzy-xacro ros-jazzy-ros-gz-bridge libasio-dev git-lfs
 ```
 
 ---
