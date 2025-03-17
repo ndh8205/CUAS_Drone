@@ -1,12 +1,7 @@
-아래는 Ubuntu 24.04 환경에서 ROS 2 Jazzy를 기반으로 Space ROS Canadarm 시뮬레이션 환경을 구축하는 MD 파일의 업데이트 버전입니다.  
-(참고: ROS 2 공식 배포판은 일반적으로 Ubuntu 22.04용 Humble이나 Iron이 많이 사용되었으나, 최근 ROS 2 Jazzy가 Ubuntu 24.04용으로 출시되어 ROS 2의 최신 기능과 장기 지원(LTS)을 제공한다고 가정하고 작성하였습니다. 실제 설치 전 공식 문서와 저장소를 반드시 재확인하시기 바랍니다.)
+# 🚀 WSL2 Ubuntu 22.04에서 Space ROS Canadarm 시뮬레이션 구축 가이드 (Gazebo Garden 사용)
 
----
-
-# 🚀 WSL2 Ubuntu 24.04에서 Space ROS Canadarm 시뮬레이션 구축 가이드 (ROS 2 Jazzy + Gazebo Harmonic)
-
-**환경:** Windows 10/11 (WSL2), Ubuntu 24.04  
-**목표:** Docker 없이 Space ROS Canadarm 시뮬레이션 환경 구축 (ROS 2 Jazzy, Gazebo Harmonic 사용)  
+**환경:** Windows 10/11 (WSL2), Ubuntu 22.04  
+**목표:** Docker 없이 Space ROS Canadarm 시뮬레이션 환경 구축 (ROS2 Humble, Gazebo Garden 사용)  
 **비고:** 이 가이드는 Open Robotics의 Dockerfile에서 사용한 모든 설정과 빌드 과정을 로컬 환경에 재현하는 것을 목표로 합니다.  
 **참고:** 컴퓨터 사양에 따라 빌드 옵션을 조정할 수 있도록 예시도 포함되어 있습니다.
 
@@ -14,9 +9,9 @@
 
 ## 📌 목차
 1. [WSL2 환경 설정](#1-wsl2-환경-설정)
-2. [ROS 2 Jazzy 설치](#2-ros2-jazzy-설치)
+2. [ROS2 Humble 설치](#2-ros2-humble-설치)
 3. [필수 패키지 설치](#3-필수-패키지-설치)
-4. [Gazebo Harmonic 설치 및 ROS 관련 패키지 설치](#4-gazebo-harmonic-설치-및-ros-관련-패키지-설치)
+4. [Gazebo Garden 및 ROS 관련 패키지 설치](#4-gazebo-garden-및-ros-관련-패키지-설치)
    - 4.1. **APT 설치 방식**
    - 4.2. **소스 빌드 방식 (선택 사항)**
 5. [워크스페이스 소스 클론 및 빌드 준비](#5-워크스페이스-소스-클론-및-빌드-준비)
@@ -36,10 +31,10 @@
 
 ## 1. WSL2 환경 설정
 
-### 1.1 Ubuntu 24.04 설치  
+### 1.1 Ubuntu 22.04 설치  
 Windows CMD/PowerShell에서:
 ```powershell
-wsl --install -d Ubuntu-24.04
+wsl --install -d Ubuntu-22.04
 ```
 
 ### 1.2 WSL2 자원 제한 (선택 권장)  
@@ -56,17 +51,15 @@ wsl --shutdown
 ```
 (필요 시 빠른 초기화를 위해)
 ```bash
-wsl --terminate Ubuntu-24.04
-wsl --unregister Ubuntu-24.04
-wsl --install -d Ubuntu-24.04
+wsl --terminate Ubuntu-22.04
+wsl --unregister Ubuntu-22.04
+wsl --install -d Ubuntu-22.04
 ```
 재부팅 후 Ubuntu 사용자명 및 암호 설정.
 
 ---
 
-## 2. ROS 2 Jazzy 설치
-
-(ROS 2 Jazzy는 Ubuntu 24.04에 공식적으로 빌드되어 있으며, 장기 지원(LTS) 배포판으로 5년간 업데이트됩니다.)
+## 2. ROS2 Humble 설치
 
 ### 2.1 Locale 설정
 ```bash
@@ -76,30 +69,29 @@ sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 export LANG=en_US.UTF-8
 ```
 
-### 2.2 ROS 2 저장소 키 및 저장소 추가
+### 2.2 ROS2 저장소 키 및 저장소 추가
 ```bash
 sudo apt install -y curl gnupg2 lsb-release
 sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
 http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 ```
-*Ubuntu 24.04의 코드네임은 “noble”이므로, 위 명령은 자동으로 “noble”을 사용합니다.*
+*Ubuntu 22.04의 코드네임은 “jammy”입니다.*
 
-### 2.3 ROS 2 Jazzy 설치  
+### 2.3 ROS2 Humble 설치
 ```bash
 sudo apt update
-sudo apt install -y ros-jazzy-desktop python3-colcon-common-extensions python3-rosdep python3-vcstool
+sudo apt install -y ros-humble-desktop python3-colcon-common-extensions python3-rosdep python3-vcstool
 ```
-*참고: ROS 2 Jazzy 데스크톱 패키지는 ROS 2의 GUI 도구 및 기본 기능을 모두 포함합니다.*
 
 ### 2.4 추가 ROS 개발 도구 (선택)
 ```bash
-sudo apt install -y python3-pip python3-colcon-mixin python3-flake8 python3-pytest-cov python3-rosinstall-generator ros-jazzy-ament-* ros-jazzy-ros-testing ros-jazzy-eigen3-cmake-module
+sudo apt install -y python3-pip python3-colcon-mixin python3-flake8 python3-pytest-cov python3-rosinstall-generator ros-humble-ament-* ros-humble-ros-testing ros-humble-eigen3-cmake-module
 ```
 
-### 2.5 ROS 2 환경 설정
+### 2.5 ROS2 환경 설정
 ```bash
-echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
+echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 sudo rosdep init || true
 rosdep update
@@ -111,29 +103,29 @@ colcon mixin update
 ```bash
 ros2 --help
 ros2 topic list
-printenv ROS_DISTRO  # "jazzy" 출력 확인
+printenv ROS_DISTRO  # "humble" 출력 확인
 ```
 
 ---
 
 ## 3. 필수 패키지 설치
 ```bash
-sudo apt install -y ros-jazzy-ros-gz ros-jazzy-moveit ros-jazzy-ros2-control ros-jazzy-ros2-controllers ros-jazzy-joint-state-publisher ros-jazzy-xacro ros-jazzy-ros-gz-bridge libasio-dev git-lfs
+sudo apt install -y ros-humble-ros-gz ros-humble-moveit ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-joint-state-publisher ros-humble-xacro ros-humble-ros-ign-bridge libasio-dev git-lfs
 ```
 
 ---
 
-## 4. Gazebo Harmonic 설치 및 ROS 관련 패키지 설치
+## 4. Gazebo Garden 및 ROS 관련 패키지 설치
 
 ### 4.1 APT 설치 방식  
-Ubuntu 24.04의 ROS 2 Jazzy용 저장소에서는 최신 Gazebo Harmonic 패키지도 제공됩니다. 아래 명령어로 설치합니다:
+아래 명령어로 공식 패키지 저장소를 이용하여 Gazebo Garden 및 ROS 연동 패키지들을 설치합니다.
 ```bash
-sudo apt install -y gz-harmonic ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-joint-state-publisher-gui ros-jazzy-xacro ros-jazzy-robot-state-publisher ros-jazzy-controller-manager
+sudo apt install -y gz-garden ros-humble-ros-gz ros-humble-ign-ros2-control ros-humble-joint-state-publisher-gui ros-humble-xacro ros-humble-robot-state-publisher ros-humble-controller-manager
 ```
-*설치 후, `gz sim --version`으로 Gazebo Harmonic 버전을 확인하세요.*
+*설치 후 `gz sim --version` 명령어로 Gazebo Garden 버전을 확인하세요.*
 
 ### 4.2 소스 빌드 방식 (선택 사항)  
-APT 패키지가 부족하거나 최신 소스를 사용하고자 한다면, 다음 절차로 OSRF Gazebo Harmonic 소스를 직접 빌드할 수 있습니다.
+APT 패키지로 제공되지 않거나 최신 소스를 사용하고자 한다면, 아래와 같이 OSRF Gazebo Garden 소스를 직접 빌드할 수 있습니다.
 
 1. **OSRF 저장소 추가 (APT 방식과 동일하게)**
    ```bash
@@ -148,14 +140,14 @@ http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" 
    cd ~
    git clone https://github.com/gazebosim/gz-sim.git
    cd gz-sim
-   # Harmonic 버전 태그(예: harmonic)를 체크아웃 (태그명은 공식 문서를 참고)
-   git checkout harmonic
+   # Garden 버전 태그(예: garden)를 체크아웃 (태그명은 공식 문서를 참고)
+   git checkout garden
    mkdir build && cd build
    cmake .. -DCMAKE_BUILD_TYPE=Release
    make -j$(nproc)
    sudo make install
    ```
-   *이 방법은 apt 대신 최신 소스나 커스터마이징이 필요한 경우에 사용합니다.*
+   *이 방법은 APT 설치 대신 최신 소스나 커스터마이징이 필요한 경우에 사용합니다.*
 
 ---
 
@@ -186,11 +178,11 @@ git clone https://github.com/space-ros/demos.git
      gz_ros2_control:
        type: git
        url: https://github.com/ros-controls/gz_ros2_control.git
-       version: jazzy
+       version: humble
      qt_gui_core:
        type: git
        url: https://github.com/ros-visualization/qt_gui_core.git
-       version: jazzy
+       version: humble
      ros2_controllers:
        type: git
        url: https://github.com/tonylitianyu/ros2_controllers.git
@@ -202,7 +194,7 @@ git clone https://github.com/space-ros/demos.git
      ros_gz:
        type: git
        url: https://github.com/gazebosim/ros_gz.git
-       version: jazzy
+       version: humble
      simulation:
        type: git
        url: https://github.com/space-ros/simulation.git
@@ -324,21 +316,22 @@ sudo usermod -aG render $USER
 
 ## 14. 설치 프로그램 및 명령어의 역할
 
-### WSL2 및 Ubuntu 24.04
+### WSL2 및 Ubuntu 22.04
 - **역할:** Windows에서 리눅스 환경 제공 (ROS2, Gazebo 등 실행)
 
-### ROS2 Jazzy
+### ROS2 Humble
 - **역할:** 로봇 소프트웨어 개발 핵심 프레임워크  
 - **설치 이유:**  
-  - `ros-jazzy-desktop`: 기본 GUI 도구 및 기능 포함  
+  - `ros-humble-desktop`: 기본 GUI 도구 및 기능 포함  
   - `colcon`: 다중 ROS 패키지 빌드  
   - `rosdep`: 의존성 자동 설치
 
-### Gazebo Harmonic
-- **역할:** 가상 시뮬레이션 환경 제공 (최신 LTS 버전)  
+### Gazebo Garden
+- **역할:** 가상 시뮬레이션 환경 제공 (최신 Garden 버전)  
 - **설치 이유:** ROS2와 연동하여 로봇 동작 테스트 및 최신 OGRE2 기반 렌더링 제공  
 - **설치 방법:**  
   - **APT 방식:** 공식 패키지 저장소를 통해 설치  
+    - 위 명령어를 통해 `gz-garden`, `ros-humble-ros-gz`, `ros-humble-ign-ros2-control`, 등으로 설치  
   - **소스 빌드 방식 (선택 사항):** 최신 소스나 커스터마이징이 필요할 경우 직접 빌드하여 설치
 
 ### X서버 (VcXsrv)
@@ -361,21 +354,11 @@ sudo usermod -aG render $USER
 
 ## 15. 마무리 및 추가 자료
 
-모든 설정과 빌드를 완료하면, WSL2 환경에서 ROS2 Jazzy, Gazebo Harmonic, 그리고 Canadarm 시뮬레이션을 안정적으로 실행할 수 있습니다.  
+모든 설정과 빌드를 완료하면, WSL2 환경에서 ROS2 Humble, Gazebo Garden, 그리고 Canadarm 시뮬레이션을 안정적으로 실행할 수 있습니다.  
 이 가이드는 Open Robotics의 Dockerfile에서 수행된 모든 단계(소스 클론, 의존성 설치, 데모 소스 내려받기, 빌드, 환경 변수 및 추가 설정, 사용자 그룹 추가 등)를 로컬에서도 동일하게 재현할 수 있도록 구성되었습니다.
 
 **추가 자료:**
-- [ROS2 Jazzy 공식 문서](https://docs.ros.org/en/jazzy/)  
-- [Gazebo Harmonic 공식 문서](https://gazebosim.org/docs/harmonic)  
-- [Space ROS 공식 리포지토리](https://github.com/space-ros)  
+- [ROS2 Humble 공식 문서](https://docs.ros.org/en/humble/)
+- [Gazebo Garden 공식 문서](https://gazebosim.org/docs/garden)
+- [Space ROS 공식 리포지토리](https://github.com/space-ros)
 - [VcXsrv 다운로드 및 설정 안내](https://sourceforge.net/projects/vcxsrv/)
-
----
-
-이상으로 Ubuntu 24.04 기준, ROS2 Jazzy와 Gazebo Harmonic을 사용한 가이드 업데이트 버전을 마무리합니다.  
-위 내용대로 진행하면 apt와 소스 빌드 방식을 모두 활용하여 데모 실행에 필요한 소스들이 내려받아지고, ROS2 Jazzy 환경이 올바르게 구축됩니다.  
-추가 수정이나 문의 사항이 있으면 말씀해 주세요!
-
----
-
-> **주의:** ROS2 Jazzy에 관한 정보는 실제 공식 배포판과 다를 수 있으므로, 설치 전 ROS2 공식 문서 및 관련 공지를 반드시 확인하시기 바랍니다.
