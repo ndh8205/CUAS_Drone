@@ -708,5 +708,3 @@ NVIDIA GPU 모델이 표시되면 GPU 가속이 작동하는 것입니다.
 - [Gazebo Garden GUI 설정 가이드](https://gazebosim.org/api/gui/7.0/gui_config.html)
 - [VcXsrv 다운로드 및 설정 안내](https://sourceforge.net/projects/vcxsrv/)
 - [WSL2에서 GPU 가속 설정](https://docs.microsoft.com/windows/wsl/tutorials/gpu-compute)
-
-이 가이드를 통해 WSL2 환경에서 Space ROS Canadarm 시뮬레이션 환경을 구축하고, Gazebo Garden의 카메라 뷰까지 완벽하게 설정할 수 있기를 바랍니다.
