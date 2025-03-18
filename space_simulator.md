@@ -166,6 +166,29 @@ git clone https://github.com/space-ros/demos.git
 - **simulation:** Canadarm URDF, 모델, Gazebo 월드 파일  
 - **demos:** Canadarm 시뮬레이션 데모 코드 및 launch 파일
 
+디렉토리 구조:
+```
+~/space_ros_ws/
+├── src/
+│   ├── simulation/
+│   │   ├── models/
+│   │   │   ├── canadarm/
+│   │   │   ├── curiosity_path/
+│   │   │   └── nasa_satellite/
+│   │   │       ├── meshes/
+│   │   │       │   └── nasa_satellite.dae
+│   │   │       ├── model.config
+│   │   │       └── model.sdf
+│   │   └── ...
+│   └── demos/
+│       ├── canadarm/
+│       │   ├── worlds/
+│       │   │   └── simple.world
+│       │   └── ...
+│       ├── canadarm_moveit_config/
+│       └── ...
+```
+
 ---
 
 ## 6. 데모 의존성 소스 코드 가져오기 (통신 모듈 포함 & repos 파일 자동 생성)
@@ -220,6 +243,21 @@ git clone https://github.com/space-ros/demos.git
 *설명:*  
 이 과정에서 데모 실행에 필요한 통신 모듈 및 기타 의존 소스 코드가 중복 없이 내려받아집니다.
 
+실행 후 생성되는 디렉토리 구조:
+```
+~/space_ros_ws/src/
+├── actuator_msgs/
+├── demos/
+├── demo_manual_pkgs.repos
+├── gps_msgs/
+├── gz_ros2_control/
+├── qt_gui_core/
+├── ros2_controllers/
+├── ros_gz/
+├── simulation/
+└── vision_msgs/
+```
+
 ---
 
 ## 7. 의존성 설치 및 전체 빌드 (warehouse_ros_mongo 건너뛰기)
@@ -237,6 +275,15 @@ source install/setup.bash
   MAKEFLAGS="-j1" colcon build --symlink-install --parallel-workers 1 --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-O1"
   ```
   *설명:* 이 옵션은 빌드 시 동시에 하나의 작업만 수행하여 메모리 사용량과 CPU 부하를 줄입니다.
+
+빌드 후 디렉토리 구조:
+```
+~/space_ros_ws/
+├── build/
+├── install/
+├── log/
+└── src/
+```
 
 ---
 
@@ -308,6 +355,8 @@ sudo usermod -aG render $USER
 아래는 Gazebo Garden 환경에서 NASA 위성의 카메라 뷰를 제대로 설정하고 최적화하는 방법입니다.
 
 ### 13.1 SDF 파일에 카메라 GUI 플러그인 설정
+`~/space_ros_ws/src/demos/canadarm/worlds/simple.world` 파일을 편집하여 다음 내용을 추가합니다:
+
 ```xml
 <gui fullscreen="0">
   <!-- 3D 뷰 플러그인 -->
@@ -338,7 +387,8 @@ sudo usermod -aG render $USER
 ```
 
 ### 13.2 카메라 센서 설정 최적화
-위성 모델 내 카메라 센서 설정을 다음과 같이 최적화합니다:
+`~/space_ros_ws/src/simulation/models/nasa_satellite/model.sdf` 파일에서 카메라 센서 설정을 다음과 같이 최적화합니다:
+
 ```xml
 <sensor name="satellite_camera" type="camera">
   <pose>0 1.2 0 0 0 0</pose>
@@ -386,92 +436,17 @@ sudo usermod -aG render $USER
 
 ## 14. 모델 분리 및 Include로 사용하기
 
-실제 개발 환경에서는 모델을 분리하여 include로 불러오는 방식이 더 유지보수에 용이합니다. 아래는 NASA 위성 모델을 분리하는 방법입니다.
+NASA 위성 모델은 이미 별도의 파일로 존재합니다. 이를 월드 파일에서 include로 불러올 수 있습니다.
 
-### 14.1 모델 디렉토리 구조 생성
-```bash
-mkdir -p ~/space_ros_ws/src/demos/models/nasa_satellite/meshes
+### 14.1 NASA 위성 모델 파일 위치
+모델 파일은 이미 다음 위치에 존재합니다:
+```
+~/space_ros_ws/src/simulation/models/nasa_satellite/model.sdf
 ```
 
-### 14.2 NASA 위성 모델 파일 생성 (model.sdf)
-```bash
-cat << 'EOF' > ~/space_ros_ws/src/demos/models/nasa_satellite/model.sdf
-<?xml version="1.0"?>
-<sdf version="1.10">
-  <model name="nasa_satellite">
-    <pose>0 0 0 0 0 0</pose>
-    <static>false</static>
-    <link name="nasa_satellite_link">
-      <inertial>
-        <mass>1.0</mass>
-        <inertia>
-          <ixx>0.001</ixx>
-          <iyy>0.001</iyy>
-          <izz>0.001</izz>
-        </inertia>
-      </inertial>
-      <visual name="visual">
-        <geometry>
-          <mesh>
-            <uri>model://nasa_satellite/meshes/nasa_satellite.dae</uri>
-          </mesh>
-        </geometry>
-      </visual>
-      <collision name="collision">
-        <geometry>
-          <mesh>
-            <uri>model://nasa_satellite/meshes/nasa_satellite.dae</uri>
-          </mesh>
-        </geometry>
-      </collision>
-      <sensor name="satellite_camera" type="camera">
-        <pose>0 1.2 0 0 0 0</pose>
-        <camera>
-          <horizontal_fov>1.047</horizontal_fov>
-          <image>
-            <width>640</width>
-            <height>480</height>
-            <format>R8G8B8</format>
-          </image>
-          <clip>
-            <near>0.1</near>
-            <far>100</far>
-          </clip>
-        </camera>
-        <always_on>true</always_on>
-        <alwaysOn>true</alwaysOn>
-        <update_rate>15</update_rate>
-        <visualize>true</visualize>
-        <topic>nasa_satellite/camera</topic>
-      </sensor>
-    </link>
-  </model>
-</sdf>
-EOF
-```
+### 14.2 월드 파일에서 모델 Include 사용
+`~/space_ros_ws/src/demos/canadarm/worlds/simple.world` 파일을 편집하여 기존 모델 정의 대신 다음과 같이 include 사용:
 
-### 14.3 모델 설정 파일 생성 (model.config)
-```bash
-cat << 'EOF' > ~/space_ros_ws/src/demos/models/nasa_satellite/model.config
-<?xml version="1.0"?>
-<model>
-  <name>NASA Satellite</name>
-  <version>1.0</version>
-  <sdf version="1.10">model.sdf</sdf>
-  
-  <author>
-    <name>Your Name</name>
-    <email>your.email@example.com</email>
-  </author>
-  
-  <description>
-    NASA satellite model with camera sensor
-  </description>
-</model>
-EOF
-```
-
-### 14.4 월드 파일에서 모델 Include 사용
 ```xml
 <!-- NASA 위성 모델 인클루드 -->
 <include>
@@ -481,17 +456,12 @@ EOF
 </include>
 ```
 
-### 14.5 메시 파일 복사
+### 14.3 환경 변수 확인
+모델 경로가 제대로 설정되어 있는지 확인:
 ```bash
-# 기존의 nasa_satellite.dae 메시 파일을 새 위치로 복사
-cp ~/space_ros_ws/src/demos/simulation/models/nasa_satellite/meshes/nasa_satellite.dae ~/space_ros_ws/src/demos/models/nasa_satellite/meshes/
+echo $GZ_SIM_RESOURCE_PATH
 ```
-
-### 14.6 환경 변수 설정
-```bash
-echo "export GZ_SIM_RESOURCE_PATH=\$GZ_SIM_RESOURCE_PATH:~/space_ros_ws/src/demos/models" >> ~/.bashrc
-source ~/.bashrc
-```
+결과에 `~/space_ros_ws/install/simulation/share/simulation/models`가 포함되어 있어야 합니다.
 
 ---
 
