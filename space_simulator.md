@@ -503,4 +503,240 @@ source ~/.bashrc
 | `colcon mixin add` 오류                                | colcon-mixin 미설치                                | `sudo apt install python3-colcon-mixin -y` 후 재시도                    |
 | OpenGL/GLX 오류 ("Failed to create OpenGL context")    | GPU 가속/X 서버 설정 문제                           | `export LIBGL_ALWAYS_SOFTWARE=1`로 설정                                |
 | Gazebo 창이 검은 화면에서 바로 꺼짐                  | X서버 설정 불량 또는 OpenGL 오류                    | VcXsrv "Disable access control" 체크, DISPLAY=:0, LIBGL_ALWAYS_SOFTWARE 적용 |
-| `ros2 control load_controller` 서비스 오류          | Gazebo 실행 또는 컨트롤러 초기화 타이밍 문제          | Gazebo 및 컨트롤러 매니저 초
+| `ros2 control load_controller` 서비스 오류          | Gazebo 실행 또는 컨트롤러 초기화 타이밍 문제          | Gazebo 및 컨트롤러 매니저 초기화 상태 확인 후 재시도                      |
+| Duplicate package "warehouse_ros_mongo" 오류        | apt 패키지와 소스 클론(또는 repos 파일) 중복         | 소스 빌드를 위해 apt 패키지 제거(또는 repos 파일을 통해 한 번만 내려받기)   |
+| "Engine [] is not supported" 오류                   | Gazebo Garden의 렌더링 엔진 설정 문제              | SDF 파일에 `<engine>ogre2</engine>` 명시적 설정                      |
+| 카메라 뷰가 업데이트되지 않음                        | 카메라 센서 동기화 문제                            | `<update_rate>` 값 높이기, `<always_on>true</always_on>` 확인      |
+| GzImageDisplay 플러그인을 찾을 수 없음              | Gazebo Garden 버전의 플러그인 이름 변경            | `ImageDisplay` 플러그인 사용, `<gz-gui>` 태그 사용                |
+
+---
+
+## 16. 설치 프로그램 및 명령어의 역할
+
+### WSL2 및 Ubuntu 22.04
+- **역할:** Windows에서 리눅스 환경 제공 (ROS2, Gazebo 등 실행)
+
+### ROS2 Humble
+- **역할:** 로봇 소프트웨어 개발 핵심 프레임워크  
+- **설치 이유:**  
+  - `ros-humble-desktop`: 기본 GUI 도구 및 기능 포함  
+  - `colcon`: 다중 ROS 패키지 빌드  
+  - `rosdep`: 의존성 자동 설치
+
+### Gazebo Garden
+- **역할:** 가상 시뮬레이션 환경 제공 (최신 Garden 버전)  
+- **설치 이유:** ROS2와 연동하여 로봇 동작 테스트 및 최신 OGRE2 기반 렌더링 제공  
+- **설치 방법:**  
+  - **APT 방식:** 공식 패키지 저장소를 통해 설치  
+    - 위 명령어를 통해 `gz-garden`, `ros-humble-ros-gz`, `ros-humble-ign-ros2-control`, 등으로 설치  
+  - **소스 빌드 방식 (선택 사항):** 최신 소스나 커스터마이징이 필요할 경우 직접 빌드하여 설치
+
+### X서버 (VcXsrv)
+- **역할:** WSL2에서 GUI 애플리케이션 화면 표시  
+- **설치 이유:** Gazebo, Rviz 등 실행
+
+### OpenGL 관련 환경 변수
+- **LIBGL_ALWAYS_SOFTWARE:** 소프트웨어 렌더링 강제 (오류 회피)  
+- **DISPLAY:** X 서버 연결 설정
+
+### 통신 모듈 및 데모 의존성
+- **역할:**  
+  - `gz_ros2_control`, `ros_gz`, `ros2_controllers`, `actuator_msgs` 등은 시뮬레이션 통신 및 제어에 필수  
+  - demo_manual_pkgs.repos를 통해 자동으로 내려받아 빌드
+
+### MongoDB C++ 드라이버 및 EP_mnmlstc_core 문제 처리
+- **참고:** 이번 가이드에서는 몽고 관련 항목은 필요 없으므로 제외합니다.
+
+---
+
+## 17. 마무리 및 추가 자료
+
+모든 설정과 빌드를 완료하면, WSL2 환경에서 ROS2 Humble, Gazebo Garden, 그리고 Canadarm 시뮬레이션을 안정적으로 실행할 수 있습니다.  
+이 가이드는 Open Robotics의 Dockerfile에서 수행된 모든 단계를 로컬에서도 동일하게 재현하고, Gazebo Garden의 카메라 뷰 설정까지 최적화하는 내용을 포함하고 있습니다.
+
+### 17.1 Gazebo Garden 환경에서 GPU 렌더링 활성화 (NVIDIA GPU 사용시)
+WSL2에서 NVIDIA GPU를 사용하여 Gazebo Garden의 성능을 향상시키려면:
+
+```bash
+# 소프트웨어 렌더링 설정 제거
+sed -i '/export LIBGL_ALWAYS_SOFTWARE=1/d' ~/.bashrc
+
+# NVIDIA GPU 렌더링 설정 추가
+echo "export DISPLAY=:0" >> ~/.bashrc
+echo "export LIBGL_ALWAYS_INDIRECT=0" >> ~/.bashrc
+echo "export __NV_PRIME_RENDER_OFFLOAD=1" >> ~/.bashrc
+echo "export __GLX_VENDOR_LIBRARY_NAME=nvidia" >> ~/.bashrc
+echo "export MESA_GL_VERSION_OVERRIDE=4.5" >> ~/.bashrc
+
+# WSL2 재시작 후 적용
+wsl --shutdown
+```
+
+### 17.2 GPU 렌더링 확인
+```bash
+glxinfo | grep "OpenGL renderer"
+```
+NVIDIA GPU 모델이 표시되면 GPU 가속이 작동하는 것입니다.
+
+### 17.3 Gazebo Garden에서 완벽하게 작동하는 카메라 뷰를 위한 최종 SDF 파일 예시
+다음은 3D 뷰와 카메라 뷰가 모두 정상적으로 작동하는 SDF 파일의 완성된 예시입니다:
+
+```xml
+<?xml version="1.0"?>
+<sdf version="1.10">
+  <world name="default">
+
+    <gui fullscreen="0">
+      <!-- 3D 뷰 플러그인 -->
+      <plugin filename="GzScene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">true</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0 0 0 1</background_color>
+        <camera_pose>10 -10 10 0 0.6 2.3</camera_pose>
+      </plugin>
+
+      <!-- 카메라 뷰 플러그인 -->
+      <plugin filename="ImageDisplay" name="Image Display">
+        <gz-gui>
+          <title>Camera View</title>
+          <property type="bool" key="showTitleBar">true</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+        <topic>nasa_satellite/camera</topic>
+        <refresh_rate_hz>60</refresh_rate_hz>
+      </plugin>
+
+      <!-- 엔티티 컨텍스트 메뉴 -->
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+        <ignition-gui>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+
+      <!-- 씬 매니저 -->
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <ignition-gui>
+          <property type="bool" key="showTitleBar">false</property>
+        </ignition-gui>
+      </plugin>
+    </gui>
+
+    <!-- 씬 설정 -->
+    <scene>
+      <ambient>0.2 0.2 0.2 1.0</ambient>
+      <background>0 0 0 1</background>
+      <shadows>true</shadows>
+      <grid>false</grid>
+    </scene>
+
+    <!-- 중력 설정 (우주 환경) -->
+    <gravity>0 0 0</gravity>
+
+    <!-- 조명 설정 -->
+    <light type="directional" name="sun">
+      <pose>0 -10 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>10 10 -0.9</direction>
+    </light>
+
+    <!-- 지구 모델 -->
+    <model name="earth">
+      <pose>170 0 -50 0 0 -1.5708</pose>
+      <static>true</static>
+      <link name='link'>
+        <inertial>
+          <mass>0.25</mass>
+          <inertia>
+            <ixx>1</ixx> <iyy>1</iyy> <izz>1</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://canadarm/meshes/earth.dae</uri>
+              <scale>3 3 3</scale>
+            </mesh>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ISS 모델 -->
+    <model name="iss">
+      <pose>1 -0.7 -2.3 0 0 1.5708</pose>
+      <static>true</static>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx> <iyy>1</iyy> <izz>1</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://canadarm/meshes/iss.dae</uri>
+              <scale>1 1 1</scale>
+            </mesh>
+          </geometry>
+        </visual>
+        <velocity_decay>
+          <linear>0.0</linear>
+          <angular>0.0</angular>
+        </velocity_decay>
+      </link>
+    </model>
+
+    <!-- NASA 위성 모델 인클루드 -->
+    <include>
+      <uri>model://nasa_satellite</uri>
+      <n>nasa_satellite</n>
+      <pose>-2 -10.7 0.3 0 0 0.8708</pose>
+    </include>
+
+    <!-- 시스템 플러그인 -->
+    <plugin filename="libgz-sim-sensors-system.so" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="libgz-sim-physics-system.so" name="gz::sim::systems::Physics"></plugin>
+    <plugin filename="libgz-sim-user-commands-system.so" name="gz::sim::systems::UserCommands"></plugin>
+    <plugin filename="libgz-sim-scene-broadcaster-system.so" name="gz::sim::systems::SceneBroadcaster"></plugin>
+
+  </world>
+</sdf>
+```
+
+### 17.4 중요 포인트 정리
+1. **GUI 플러그인 이름과 태그**: Gazebo Garden 7.9.0에서는 일부 플러그인에서 여전히 이전 스타일의 태그(`ignition-gui`)를 사용해야 하고, 일부는 새로운 태그(`gz-gui`)를 사용해야 합니다.
+2. **카메라 업데이트 문제**: 카메라 센서가 실시간으로 업데이트되지 않는 문제는 WSL2 환경에서 종종 발생합니다. 센서 설정 최적화와 약간의 움직임을 통해 해결할 수 있습니다.
+3. **성능 최적화**: 소프트웨어 렌더링은 디버깅에 유용하지만, 성능을 위해서는 GPU 렌더링으로 전환하는 것이 좋습니다.
+
+### 17.5 추가 자료
+- [ROS2 Humble 공식 문서](https://docs.ros.org/en/humble/)
+- [Gazebo Garden 공식 문서](https://gazebosim.org/docs/garden)
+- [Space ROS 공식 리포지토리](https://github.com/space-ros)
+- [Gazebo Garden GUI 설정 가이드](https://gazebosim.org/api/gui/7.0/gui_config.html)
+- [VcXsrv 다운로드 및 설정 안내](https://sourceforge.net/projects/vcxsrv/)
+- [WSL2에서 GPU 가속 설정](https://docs.microsoft.com/windows/wsl/tutorials/gpu-compute)
+
+이 가이드를 통해 WSL2 환경에서 Space ROS Canadarm 시뮬레이션 환경을 구축하고, Gazebo Garden의 카메라 뷰까지 완벽하게 설정할 수 있기를 바랍니다.
