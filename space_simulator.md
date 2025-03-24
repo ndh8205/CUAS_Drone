@@ -700,7 +700,10 @@ NVIDIA GPU 모델이 표시되면 GPU 가속이 작동하는 것입니다.
 1. **GUI 플러그인 이름과 태그**: Gazebo Garden 7.9.0에서는 일부 플러그인에서 여전히 이전 스타일의 태그(`ignition-gui`)를 사용해야 하고, 일부는 새로운 태그(`gz-gui`)를 사용해야 합니다.
 2. **카메라 업데이트 문제**: 카메라 센서가 실시간으로 업데이트되지 않는 문제는 WSL2 환경에서 종종 발생합니다. 센서 설정 최적화와 약간의 움직임을 통해 해결할 수 있습니다.
 3. **성능 최적화**: 소프트웨어 렌더링은 디버깅에 유용하지만, 성능을 위해서는 GPU 렌더링으로 전환하는 것이 좋습니다.
-
+4. 윈도우에 백업하고 나서 zone identifier 파일이 엄청 생기는데 그거 없애는 명령어는 아래와 같다
+   ```bash
+   find . -name "*:Zone.Identifier" -type f -delete
+   ```
 ### 17.5 추가 자료
 - [ROS2 Humble 공식 문서](https://docs.ros.org/en/humble/)
 - [Gazebo Garden 공식 문서](https://gazebosim.org/docs/garden)
