@@ -178,8 +178,6 @@ git clone https://github.com/space-ros/demos.git
 
 ## 6. 데모 의존성 소스 코드 가져오기 (통신 모듈 포함 & repos 파일 자동 생성)
 
-**(제어 관련 패키지는 제외하고 필수 항목만 포함합니다.)**
-
 1. **repos 파일 생성 (자동 복붙)**
    ```bash
    cat << 'EOF' > ~/space_ros_ws/src/demo_manual_pkgs.repos
@@ -524,8 +522,7 @@ ros2 run ros_gz_bridge parameter_bridge \
 
 ### 17.4 중요 포인트 정리
 1. **제어 관련 패키지 제거:**  
-   - 이번 구성에서는 ros2_control, ros2_controllers, gz_ros2_control, actuator_msgs 등 제어 기능을 수행하는 패키지를 모두 제거합니다.  
-   - 이로 인해 로봇 팔이나 관절 제어 기능은 사용하지 않으며, 인공위성 모델은 단순 시각적 구동만 합니다.
+   - 인공위성 모델은 단순 시각적 구동만 합니다.
 2. **Gazebo 및 ROS 연동:**  
    - Gazebo Harmonic과 ROS 2 Jazzy는 공식 ros_gz 브리지를 사용하여 기본 통신만 수행합니다.
 3. **빌드 안정성:**  
