@@ -286,14 +286,8 @@ source ~/.bashrc
 
 이제 제어 기능 없이 인공위성 모델만을 구동하는 시뮬레이션을 실행합니다.
 
-예시로, Gazebo Harmonic에서 NASA 위성 모델을 직접 실행하려면:
 ```bash
-gz sim ~/space_ros_ws/src/simulation/models/nasa_satellite/model.sdf
-```
-또는, demos 폴더에 인공위성 관련 launch 파일이 있다면 해당 launch 파일을 실행합니다.  
-예시:
-```bash
-ros2 launch satellite_simulation satellite.launch.py
+ros2 launch canadarm sat2.launch.py
 ```
 *(실제 launch 파일 이름과 경로는 데모 구성에 따라 다를 수 있으므로, 필요에 따라 수정하세요.)*
 
