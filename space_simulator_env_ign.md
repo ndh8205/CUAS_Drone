@@ -489,153 +489,36 @@ glxinfo | grep "OpenGL renderer"
 ```
 NVIDIA GPU 모델이 표시되면 GPU 가속이 작동하는 것입니다.
 
-### 17.3 Gazebo Garden에서 완벽하게 작동하는 카메라 뷰를 위한 최종 SDF 파일 예시
-다음은 3D 뷰와 카메라 뷰가 모두 정상적으로 작동하는 SDF 파일의 완성된 예시입니다:
+### 17.3 브릿지 열기
+Fortress 환경에서 ROS–Ignition(=Gazebo Fortress) 브리지를 사용하려면, **`ros-humble-ros-ign-bridge`** 패키지를 통해 **`parameter_bridge`** 노드를 띄워주면 됩니다.  
 
-```xml
-<?xml version="1.0"?>
-<sdf version="1.10">
-  <world name="default">
+이미지 토픽이 아래와 같이 두 개라면:
+- `/nasa_satellite/camera`
+- `/nasa_satellite2/camera`
 
-    <gui fullscreen="0">
-      <!-- 3D 뷰 플러그인 -->
-      <plugin filename="GzScene3D" name="3D View">
-        <ignition-gui>
-          <title>3D View</title>
-          <property type="bool" key="showTitleBar">true</property>
-          <property type="string" key="state">docked</property>
-        </ignition-gui>
-        <engine>ogre2</engine>
-        <scene>scene</scene>
-        <ambient_light>0.4 0.4 0.4</ambient_light>
-        <background_color>0 0 0 1</background_color>
-        <camera_pose>10 -10 10 0 0.6 2.3</camera_pose>
-      </plugin>
+각각을 ROS의 `sensor_msgs/msg/Image` 타입으로 브리지하려면, 예를 들어 다음 명령어를 사용할 수 있습니다:
 
-      <!-- 카메라 뷰 플러그인 -->
-      <plugin filename="ImageDisplay" name="Image Display">
-        <gz-gui>
-          <title>Camera View</title>
-          <property type="bool" key="showTitleBar">true</property>
-          <property type="string" key="state">docked</property>
-        </gz-gui>
-        <topic>nasa_satellite/camera</topic>
-        <refresh_rate_hz>60</refresh_rate_hz>
-      </plugin>
-
-      <!-- 엔티티 컨텍스트 메뉴 -->
-      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
-        <ignition-gui>
-          <anchors target="3D View">
-            <line own="right" target="right"/>
-            <line own="top" target="top"/>
-          </anchors>
-          <property key="state" type="string">floating</property>
-          <property key="width" type="double">5</property>
-          <property key="height" type="double">5</property>
-          <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
-      </plugin>
-
-      <!-- 씬 매니저 -->
-      <plugin filename="GzSceneManager" name="Scene Manager">
-        <ignition-gui>
-          <property type="bool" key="showTitleBar">false</property>
-        </ignition-gui>
-      </plugin>
-    </gui>
-
-    <!-- 씬 설정 -->
-    <scene>
-      <ambient>0.2 0.2 0.2 1.0</ambient>
-      <background>0 0 0 1</background>
-      <shadows>true</shadows>
-      <grid>false</grid>
-    </scene>
-
-    <!-- 중력 설정 (우주 환경) -->
-    <gravity>0 0 0</gravity>
-
-    <!-- 조명 설정 -->
-    <light type="directional" name="sun">
-      <pose>0 -10 10 0 0 0</pose>
-      <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.2 0.2 0.2 1</specular>
-      <attenuation>
-        <range>1000</range>
-        <constant>0.9</constant>
-        <linear>0.01</linear>
-        <quadratic>0.001</quadratic>
-      </attenuation>
-      <direction>10 10 -0.9</direction>
-    </light>
-
-    <!-- 지구 모델 -->
-    <model name="earth">
-      <pose>170 0 -50 0 0 -1.5708</pose>
-      <static>true</static>
-      <link name='link'>
-        <inertial>
-          <mass>0.25</mass>
-          <inertia>
-            <ixx>1</ixx> <iyy>1</iyy> <izz>1</izz>
-          </inertia>
-        </inertial>
-        <visual name='visual'>
-          <geometry>
-            <mesh>
-              <uri>model://canadarm/meshes/earth.dae</uri>
-              <scale>3 3 3</scale>
-            </mesh>
-          </geometry>
-        </visual>
-      </link>
-    </model>
-
-    <!-- ISS 모델 -->
-    <model name="iss">
-      <pose>1 -0.7 -2.3 0 0 1.5708</pose>
-      <static>true</static>
-      <link name="link">
-        <inertial>
-          <mass>1</mass>
-          <inertia>
-            <ixx>1</ixx> <iyy>1</iyy> <izz>1</izz>
-          </inertia>
-        </inertial>
-        <visual name='visual'>
-          <geometry>
-            <mesh>
-              <uri>model://canadarm/meshes/iss.dae</uri>
-              <scale>1 1 1</scale>
-            </mesh>
-          </geometry>
-        </visual>
-        <velocity_decay>
-          <linear>0.0</linear>
-          <angular>0.0</angular>
-        </velocity_decay>
-      </link>
-    </model>
-
-    <!-- NASA 위성 모델 인클루드 -->
-    <include>
-      <uri>model://nasa_satellite</uri>
-      <n>nasa_satellite</n>
-      <pose>-2 -10.7 0.3 0 0 0.8708</pose>
-    </include>
-
-    <!-- 시스템 플러그인 -->
-    <plugin filename="libgz-sim-sensors-system.so" name="gz::sim::systems::Sensors">
-      <render_engine>ogre2</render_engine>
-    </plugin>
-    <plugin filename="libgz-sim-physics-system.so" name="gz::sim::systems::Physics"></plugin>
-    <plugin filename="libgz-sim-user-commands-system.so" name="gz::sim::systems::UserCommands"></plugin>
-    <plugin filename="libgz-sim-scene-broadcaster-system.so" name="gz::sim::systems::SceneBroadcaster"></plugin>
-
-  </world>
-</sdf>
+```bash
+ros2 run ros_ign_bridge parameter_bridge \
+  /nasa_satellite/camera@sensor_msgs/msg/Image@ignition.msgs.Image \
+  /nasa_satellite2/camera@sensor_msgs/msg/Image@ignition.msgs.Image
 ```
+
+> **설명**  
+> - `/nasa_satellite/camera`: Ignition(=Fortress) 쪽에서 발행하는 이미지 토픽 이름  
+> - `sensor_msgs/msg/Image`: ROS2에서 사용하는 메시지 타입  
+> - `ignition.msgs.Image`: Ignition(=Fortress)에서 사용하는 메시지 타입  
+
+위 명령을 실행하면, ROS2 쪽에서 `/nasa_satellite/camera`와 `/nasa_satellite2/camera` 토픽이 `sensor_msgs/msg/Image` 형태로 브리지되어 보이게 됩니다.  
+
+만약 ROS 쪽에서 `camera_info`를 사용해야 한다면, `camera_info` 토픽에 대해서도 별도로 브리지를 열어야 합니다. 보통 Ignition 쪽 카메라 센서에는 `/nasa_satellite/camera_info` 같은 토픽이 존재하므로, 다음과 같이 추가할 수 있습니다:
+```bash
+ros2 run ros_ign_bridge parameter_bridge \
+  /nasa_satellite/camera@sensor_msgs/msg/Image@ignition.msgs.Image \
+  /nasa_satellite/camera_info@sensor_msgs/msg/CameraInfo@ignition.msgs.CameraInfo
+```
+(*`/nasa_satellite2/camera_info` 토픽도 같은 방식으로 브리지*)
+
 
 ### 17.4 중요 포인트 정리
 1. **GUI 플러그인 이름과 태그**: Gazebo Garden 7.9.0에서는 일부 플러그인에서 여전히 이전 스타일의 태그(`ignition-gui`)를 사용해야 하고, 일부는 새로운 태그(`gz-gui`)를 사용해야 합니다.
