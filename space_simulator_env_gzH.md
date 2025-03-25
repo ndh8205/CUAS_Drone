@@ -489,82 +489,44 @@ glxinfo | grep "OpenGL renderer"
 ```
 NVIDIA GPU 모델이 출력되면 GPU 가속이 정상 동작하는 것입니다.
 
-### 17.3 Gazebo Harmonic에서 완벽하게 작동하는 카메라 뷰를 위한 최종 SDF 파일 예시
-```xml
-<?xml version="1.0"?>
-<sdf version="1.10">
-  <world name="default">
+다음은 Gazebo Harmonic 및 ROS 2 Jazzy 환경에 맞게 17.3 "브릿지 열기" 섹션을 수정한 업데이트 버전입니다. 이 버전에서는 예전의 ros‑ign‑bridge 대신 최신 ros‑gz 브리지를 사용하며, 메시지 타입도 Gazebo Harmonic에 맞게 네임스페이스가 변경된 것을 반영합니다.
 
-    <gui fullscreen="0">
-      <!-- 3D 뷰 플러그인 -->
-      <plugin filename="GzScene3D" name="3D View">
-        <gz-gui>
-          <title>3D View</title>
-          <property type="bool" key="showTitleBar">true</property>
-          <property type="string" key="state">docked</property>
-        </gz-gui>
-        <engine>ogre2</engine>
-        <scene>scene</scene>
-        <ambient_light>0.4 0.4 0.4</ambient_light>
-        <background_color>0 0 0 1</background_color>
-        <camera_pose>10 -10 10 0 0.6 2.3</camera_pose>
-      </plugin>
+---
 
-      <!-- 카메라 뷰 플러그인 -->
-      <plugin filename="ImageDisplay" name="Image Display">
-        <gz-gui>
-          <title>Camera View</title>
-          <property type="bool" key="showTitleBar">true</property>
-          <property type="string" key="state">docked</property>
-        </gz-gui>
-        <topic>nasa_satellite/camera</topic>
-        <refresh_rate_hz>60</refresh_rate_hz>
-      </plugin>
-    </gui>
+### 17.3 브릿지 열기
 
-    <!-- 씬 설정 -->
-    <scene>
-      <ambient>0.2 0.2 0.2 1.0</ambient>
-      <background>0 0 0 1</background>
-      <shadows>true</shadows>
-      <grid>false</grid>
-    </scene>
+Gazebo Harmonic 환경에서는 ROS–Gazebo 통합을 위해 **ros‑gz 브리지**를 사용합니다. 만약 Gazebo 쪽에서 인공위성 카메라와 카메라 정보 토픽을 ROS의 sensor_msgs 메시지로 브리지하려면, 아래와 같이 명령어를 실행합니다.
 
-    <!-- 무중력 우주 환경 설정 -->
-    <gravity>0 0 0</gravity>
+예를 들어, 이미지 토픽이 아래와 같이 두 개라면:
 
-    <!-- 조명 설정 -->
-    <light type="directional" name="sun">
-      <pose>0 -10 10 0 0 0</pose>
-      <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.2 0.2 0.2 1</specular>
-      <attenuation>
-        <range>1000</range>
-        <constant>0.9</constant>
-        <linear>0.01</linear>
-        <quadratic>0.001</quadratic>
-      </attenuation>
-      <direction>10 10 -0.9</direction>
-    </light>
+- `/nasa_satellite/camera`
+- `/nasa_satellite2/camera`
 
-    <!-- NASA 위성 모델 인클루드 -->
-    <include>
-      <uri>model://nasa_satellite</uri>
-      <name>nasa_satellite</name>
-      <pose>-2 -10.7 0.3 0 0 0.8708</pose>
-    </include>
+각각을 ROS의 `sensor_msgs/msg/Image` 타입으로 브리지하려면 다음 명령어를 사용할 수 있습니다.
 
-    <!-- 시스템 플러그인 -->
-    <plugin filename="libgz-sim-sensors-system.so" name="gz::sim::systems::Sensors">
-      <render_engine>ogre2</render_engine>
-    </plugin>
-    <plugin filename="libgz-sim-physics-system.so" name="gz::sim::systems::Physics"></plugin>
-    <plugin filename="libgz-sim-user-commands-system.so" name="gz::sim::systems::UserCommands"></plugin>
-    <plugin filename="libgz-sim-scene-broadcaster-system.so" name="gz::sim::systems::SceneBroadcaster"></plugin>
-
-  </world>
-</sdf>
+```bash
+ros2 run ros_gz_bridge parameter_bridge \
+  /nasa_satellite/camera@sensor_msgs/msg/Image@gz.msgs.Image \
+  /nasa_satellite2/camera@sensor_msgs/msg/Image@gz.msgs.Image
 ```
+
+**설명:**
+
+- `/nasa_satellite/camera`: Gazebo Harmonic 쪽에서 발행하는 이미지 토픽 이름  
+- `sensor_msgs/msg/Image`: ROS 2에서 사용하는 이미지 메시지 타입  
+- `gz.msgs.Image`: Gazebo Harmonic에서 사용하는 이미지 메시지 타입 (이전의 ignition.msgs.Image 대신 사용)
+
+만약 ROS 쪽에서 카메라 정보(`camera_info`)를 사용해야 한다면, 별도로 카메라 정보 토픽에 대해 브리지를 열어야 합니다. 예를 들어, 아래와 같이 실행할 수 있습니다:
+
+```bash
+ros2 run ros_gz_bridge parameter_bridge \
+  /nasa_satellite/camera@sensor_msgs/msg/Image@gz.msgs.Image \
+  /nasa_satellite/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo
+```
+
+위 명령을 실행하면, ROS 2 쪽에서 `/nasa_satellite/camera`와 `/nasa_satellite/camera_info` 토픽이 각각 sensor_msgs의 Image와 CameraInfo 형태로 브리지되어 사용 가능합니다.
+
+---
 
 ### 17.4 중요 포인트 정리
 1. **제어 관련 패키지 제거:**  
