@@ -117,25 +117,11 @@ sudo apt install -y ros-humble-ros-gz ros-humble-moveit ros-humble-ros2-control 
 
 ---
 
-## 4. Gazebo Garden 및 ROS 관련 패키지 설치
+## 4. Gazebo(Ignition) 및 ROS 관련 패키지 설치
 
-### 4.1 APT 설치 방식  
-아래 명령어로 공식 패키지 저장소를 이용하여 Gazebo Garden 및 ROS 연동 패키지들을 설치합니다.
-
-**OSRF 저장소 추가 (APT 방식과 동일하게)**
-
- ```bash
- sudo apt install -y wget lsb-release gnupg
- sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/gazebo-archive-keyring.gpg
- echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/gazebo-archive-keyring.gpg] \
- http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list
- sudo apt update
- ```
-   
-  ```bash
-  sudo apt install -y gz-garden ros-humble-ros-gz ros-humble-ign-ros2-control ros-humble-joint-state-publisher-gui ros-humble-xacro ros-humble-robot-state-publisher ros-humble-controller-manager
-  ```
-*설치 후 `gz sim --version` 명령어로 Gazebo Garden 버전을 확인하세요.*
+```bash
+sudo apt install -y ros-humble-ros-gz ros-humble-ign-ros2-control ros-humble-joint-state-publisher-gui ros-humble-xacro ros-humble-robot-state-publisher ros-humble-controller-manager
+```
 
 ## 5. 워크스페이스 소스 클론 및 빌드 준비
 
@@ -143,34 +129,6 @@ sudo apt install -y ros-humble-ros-gz ros-humble-moveit ros-humble-ros2-control 
 ```bash
 mkdir -p ~/space_ros_ws/src && cd ~/space_ros_ws/src
 git lfs install
-git clone https://github.com/space-ros/simulation.git
-git clone https://github.com/space-ros/demos.git
-```
-*설명:*  
-- **simulation:** Canadarm URDF, 모델, Gazebo 월드 파일  
-- **demos:** Canadarm 시뮬레이션 데모 코드 및 launch 파일
-
-디렉토리 구조:
-```
-~/space_ros_ws/
-├── src/
-│   ├── simulation/
-│   │   ├── models/
-│   │   │   ├── canadarm/
-│   │   │   ├── curiosity_path/
-│   │   │   └── nasa_satellite/
-│   │   │       ├── meshes/
-│   │   │       │   └── nasa_satellite.dae
-│   │   │       ├── model.config
-│   │   │       └── model.sdf
-│   │   └── ...
-│   └── demos/
-│       ├── canadarm/
-│       │   ├── worlds/
-│       │   │   └── simple.world
-│       │   └── ...
-│       ├── canadarm_moveit_config/
-│       └── ...
 ```
 
 ---
