@@ -76,8 +76,7 @@ export LANG=en_US.UTF-8
 ```bash
 sudo apt install -y curl gnupg2 lsb-release
 sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \ http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | \
-sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \ http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | \ sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 ```
 *Ubuntu 24.04의 코드네임은 시스템에 따라 자동 반영됩니다.*
 
