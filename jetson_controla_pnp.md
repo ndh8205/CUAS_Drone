@@ -1,4 +1,3 @@
-```markdown
 # Jetson에서 ArUco 마커 기반 C++ 포즈 추정 코드 실행 가이드 🚀
 
 이 문서는 NVIDIA Jetson 보드(예: Jetson Nano, TX2, Xavier NX 등)에서 제공된 C++ 코드를 사용하여 ArUco 마커를 감지하고 실시간으로 포즈를 추정하는 환경을 구축하고 프로그램을 실행하는 전체 과정을 안내합니다.
