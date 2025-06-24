@@ -55,9 +55,9 @@ wsl --install -d Ubuntu-22.04
 * 빠른 초기화를 위한 명령어는 아래와 같이 정리
 
 ```powershell
-wsl --terminate Ubuntu-20.04
-wsl --unregister Ubuntu-20.04
-wsl --install -d Ubuntu-20.04
+wsl --terminate Ubuntu-22.04
+wsl --unregister Ubuntu-22.04
+wsl --install -d Ubuntu-22.04
 ```
 ### 2.2 첫 실행
 
