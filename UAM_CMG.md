@@ -55,9 +55,9 @@ wsl --install -d Ubuntu-22.04
 * 빠른 초기화를 위한 명령어는 아래와 같이 정리
 
 ```powershell
-wsl --terminate Ubuntu-22.04
-wsl --unregister Ubuntu-22.04
-wsl --install -d Ubuntu-22.04
+wsl --terminate Ubuntu-20.04
+wsl --unregister Ubuntu-20.04
+wsl --install -d Ubuntu-20.04
 ```
 ### 2.2 첫 실행
 
@@ -70,23 +70,10 @@ wsl --install -d Ubuntu-22.04
 ### 3.1 시스템 업데이트·로케일·타임존
 
 ```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y locales
-sudo locale-gen en_US.UTF-8 ko_KR.UTF-8
-sudo update-locale LANG=en_US.UTF-8
-sudo timedatectl set-timezone Asia/Seoul
-```
-
-### 3.2 WSL2 특화 (`/etc/wsl.conf`)
-
-```bash
-sudo tee /etc/wsl.conf > /dev/null <<EOF
-[boot]
-systemd=true
-
-[interop]
-appendWindowsPath=true
-EOF
+sudo apt update && sudo apt install -y locales
+sudo locale-gen en_US en_US.UTF-8
+sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
 ```
 
 ---
@@ -132,47 +119,26 @@ make px4_sitl_default none
 
 ## 6. ROS 2 Humble 설치
 
-### 6.1 로케일 설정
-
-```bash
-sudo apt update && sudo apt install -y locales
-sudo locale-gen en_US en_US.UTF-8
-sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-export LANG=en_US.UTF-8
-```
-
 ### 6.2 ROS 2 저장소 키 & 리포지터리 추가
 
 ```bash
 sudo apt install -y curl gnupg2 lsb-release
 
-# 1) GPG 키 가져오기 (NO_PUBKEY F42ED6FBAB17C654 해결)
-curl -sSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF42ED6FBAB17C654' \
-  | gpg --dearmor \
-  | sudo tee /usr/share/keyrings/ros-archive-keyring.gpg > /dev/null
-
-# 2) apt 저장소 등록
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
-http://packages.ros.org/ros2/ubuntu \
-$(source /etc/os-release && echo $UBUNTU_CODENAME) main" \
-| sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
-
-sudo apt update
+```bash
+sudo apt install -y curl gnupg2 lsb-release
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 ```
 
-### 6.3 ROS 2 Humble & 필수 도구 설치
-
+### 6.3 ROS2 Humble 설치
 ```bash
-# Desktop + GUI
-sudo apt install -y ros-humble-desktop
+sudo apt update
+sudo apt install -y ros-humble-desktop python3-colcon-common-extensions python3-rosdep python3-vcstool
 
 # 빌드/관리 도구
 sudo apt install -y python3-colcon-common-extensions python3-vcstool \
                     python3-rosdep python3-pip
 
-# (선택) 추가 개발 도구
-sudo apt install -y python3-flake8 python3-pytest-cov \
-                    ros-humble-ament-lint ros-humble-ros-testing
 ```
 
 ### 6.4 환경 설정 & 초기화
@@ -180,13 +146,9 @@ sudo apt install -y python3-flake8 python3-pytest-cov \
 ```bash
 echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 source ~/.bashrc
-
 sudo rosdep init || true
 rosdep update
-
-# (권장) colcon mixin 설정
-colcon mixin add default \
-  https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml
+colcon mixin add default https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml
 colcon mixin update
 ```
 
