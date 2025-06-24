@@ -137,6 +137,8 @@ sudo apt install -y ros-humble-desktop python3-colcon-common-extensions python3-
 # 빌드/관리 도구
 sudo apt install -y python3-colcon-common-extensions python3-vcstool \
                     python3-rosdep python3-pip
+sudo apt install -y python3-pip python3-colcon-mixin python3-flake8 python3-pytest-cov python3-rosinstall-generator ros-humble-ament-* ros-humble-ros-testing ros-humble-eigen3-cmake-module
+
 
 ```
 
