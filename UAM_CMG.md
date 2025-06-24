@@ -52,7 +52,13 @@ wsl --set-default-version 2
 ```powershell
 wsl --install -d Ubuntu-22.04
 ```
+* 빠른 초기화를 위한 명령어는 아래와 같이 정리
 
+```powershell
+wsl --terminate Ubuntu-20.04
+wsl --unregister Ubuntu-20.04
+wsl --install -d Ubuntu-20.04
+```
 ### 2.2 첫 실행
 
 * 사용자명·비밀번호 설정
