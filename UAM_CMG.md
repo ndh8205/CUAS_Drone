@@ -14,7 +14,7 @@
 4. [개발 도구 설치](#4-개발-도구-설치)  
 5. [PX4 SITL 설치](#5-px4-sitl-설치)  
 6. [ROS 2 Humble 설치](#6-ros-2-humble-설치)  
-7. [Gazebo 설치 (Classic vs Harmonic)](#7-gazebo-설치-classic-vs-harmonic)  
+7. [Gazebo 설치 (Classic vs Harmonic)](#7-gazebo-설치-harmonic)  
 8. [PX4–ROS 2 통합](#8-px4–ros-2-통합)  
 9. [VTOL 시뮬레이션 실행](#9-vtol-시뮬레이션-실행)  
 10. [Fast DDS(Fast RTPS) 설정](#10-fast-ddsfast-rtps-설정)  
@@ -123,8 +123,6 @@ make px4_sitl_default none
 
 ```bash
 sudo apt install -y curl gnupg2 lsb-release
-
-sudo apt install -y curl gnupg2 lsb-release
 sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 ```
@@ -165,15 +163,7 @@ printenv ROS_DISTRO   # -> humble
 
 ## 7. Gazebo 설치 (Classic vs Harmonic)
 
-### 7.1 Gazebo Classic (gazebo11)
-
-```bash
-sudo apt update
-sudo apt install -y gazebo libgazebo-dev
-sudo apt install -y ros-humble-gazebo-ros-pkgs ros-humble-gazebo-ros
-```
-
-### 7.2 Gazebo Harmonic (Ignition 최신판)
+### 7.1 Gazebo Harmonic (Ignition 최신판)
 
 ```bash
 # 1) OSRF 저장소 추가
