@@ -111,8 +111,6 @@ dpkg -l | grep nvidia
 # OpenCV 버전 확인
 pkg-config --modversion opencv4
 
-# Python에서 OpenCV 확인
-python3 -c "import cv2; print(cv2.__version__)"
 ```
 
 ---
