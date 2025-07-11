@@ -10,7 +10,6 @@ OS: Ubuntu 20.04 또는 Ubuntu 22.04 (x86_64)
 인터넷: 안정적인 인터넷 연결
 ```
 2. SDK Manager 설치
-bash# 1. NVIDIA 개발자 계정 생성 (필수)
 ### https://developer.nvidia.com 에서 계정 생성
 
 ### 2. SDK Manager 다운로드
