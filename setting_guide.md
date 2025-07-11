@@ -177,7 +177,7 @@ sudo apt-get install libv4l-dev
 
 ## 5. C++ 코드 준비 📝
 
-`apriltag_pose_estimation.cpp`와 같이 파일 이름으로 저장합니다.
+`hom_de_pose_estimation.cpp`와 같이 파일 이름으로 저장합니다.
 
 ```cpp
 #include <opencv2/opencv.hpp>
@@ -614,12 +614,12 @@ int main() {
 **C++17 표준**을 사용해야 합니다 (코드 내 structured binding `auto [R_opt, t_opt] = ...;` 사용 때문).
 
 ```bash
-g++ -std=c++17 -o apriltag_pose_estimation apriltag_pose_estimation.cpp $(pkg-config --cflags --libs opencv4) -pthread
+g++ -std=c++17 -o hom_de_pose_estimation hom_de_pose_estimation.cpp $(pkg-config --cflags --libs opencv4) -pthread
 ```
 * `-pthread`는 C++ 표준 라이브러리의 스레딩 관련 기능을 사용할 경우 필요할 수 있습니다. (현재 코드에는 직접적인 멀티스레딩은 없지만, OpenCV 내부적으로 사용할 수 있으므로 추가하는 것이 안전할 수 있습니다.)
 * 만약 `pkg-config --modversion opencv4`가 동작하지 않고 `opencv`로만 버전이 확인되었다면, 컴파일 명령어의 `opencv4` 부분을 `opencv`로 변경합니다.
     ```bash
-    g++ -std=c++17 -o apriltag_pose_estimation apriltag_pose_estimation.cpp $(pkg-config --cflags --libs opencv) -pthread
+    g++ -std=c++17 -o hom_de_pose_estimation hom_de_pose_estimation.cpp $(pkg-config --cflags --libs opencv) -pthread
     ```
 
 만약 컴파일 중 `error: invalid initialization of reference of type ‘const cv::Ptr<cv::aruco::Dictionary>&’ from expression of type ‘cv::aruco::Dictionary’` 와 같은 오류가 발생하면, `main` 함수 내 `aruco_dict` 선언 부분을 확인하여 `cv::aruco::getPredefinedDictionary`의 반환 타입과 `cv::aruco::detectMarkers`가 요구하는 타입이 일치하도록 `cv::Ptr`로 올바르게 감쌌는지 확인합니다. (제공된 최종 코드는 이 부분이 수정되어 있습니다.)
@@ -630,7 +630,7 @@ g++ -std=c++17 -o apriltag_pose_estimation apriltag_pose_estimation.cpp $(pkg-co
 
 컴파일이 성공적으로 완료되면, 실행 파일 (`apriltag_pose_estimation`)이 생성됩니다. 다음 명령어로 프로그램을 실행합니다.
 ```bash
-./apriltag_pose_estimation
+./hom_de_pose_estimation
 ```
 카메라가 연결되어 있고 프로그램이 정상적으로 실행되면, 카메라 영상 창이 나타나고 감지된 ArUco 마커 위에 좌표축과 함께 Roll, Pitch, Yaw, Translation (t) 벡터 정보가 표시됩니다.
 
