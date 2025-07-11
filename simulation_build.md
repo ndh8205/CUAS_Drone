@@ -270,11 +270,18 @@ source ~/.bashrc
 
 ---
 
-## 10. src, demo파일 교체
+## 10. src 파일 추가 및 교체
 
-함께 첨부된 src파일과 demo파일을 교체하여 위의 7,8 과정을 반복한다.
+함께 첨부된 src파일 내부의 파일들을 src로 복사하여 아래의 명령어 수행
+
+```bash
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+source install/setup.bash
+```
+
 아래의 코드는 윈도우에서 우분투로 파일을 복사하여 넣었을 때 생기는 Zone.Identifier를 삭제하는 명령어로 
 명령어를 사용하여 저 파일들을 모두 지우는 것이 좋습니다.
+
 ```bash
 find . -name "*:Zone.Identifier*" -delete
 ```
