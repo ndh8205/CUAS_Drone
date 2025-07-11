@@ -105,43 +105,7 @@ apt show nvidia-jetpack
 dpkg -l | grep nvidia
 ```
 
-### 2. CUDA 확인
-
-```bash
-# CUDA 버전 확인
-nvcc --version
-
-# CUDA 경로 확인
-echo $CUDA_HOME
-ls /usr/local/cuda/
-
-# CUDA 샘플 컴파일 및 테스트
-cd /usr/local/cuda/samples/1_Utilities/deviceQuery
-sudo make
-./deviceQuery
-```
-
-### 3. cuDNN 확인
-
-```bash
-# cuDNN 버전 확인
-dpkg -l | grep cudnn
-
-# cuDNN 헤더 파일에서 버전 확인
-cat /usr/include/cudnn_version.h | grep CUDNN_MAJOR -A 2
-```
-
-### 4. TensorRT 확인
-
-```bash
-# TensorRT 버전 확인
-dpkg -l | grep tensorrt
-
-# Python에서 TensorRT 확인
-python3 -c "import tensorrt; print(tensorrt.__version__)"
-```
-
-### 5. OpenCV 확인
+### 2. OpenCV 확인
 
 ```bash
 # OpenCV 버전 확인
