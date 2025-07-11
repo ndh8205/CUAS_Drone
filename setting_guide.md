@@ -10,18 +10,23 @@ OS: Ubuntu 20.04 또는 Ubuntu 22.04 (x86_64)
 인터넷: 안정적인 인터넷 연결
 ```
 2. SDK Manager 설치
-### https://developer.nvidia.com 에서 계정 생성
-
+```
+https://developer.nvidia.com 에서 계정 생성
+```
 ### 2. SDK Manager 다운로드
-### https://developer.nvidia.com/nvidia-sdk-manager 에서 
-### sdkmanager_[version]_amd64.deb 파일 다운로드
-
+```
+ https://developer.nvidia.com/nvidia-sdk-manager 에서 
+ sdkmanager_[version]_amd64.deb 파일 다운로드
+```
 ### 3. SDK Manager 설치
+```
 sudo apt update
 sudo apt install ./sdkmanager_*_amd64.deb
-
+```
 ### 4. 의존성 패키지 설치
+```
 sudo apt install -y libgconf-2-4 libcanberra-gtk-module
+```
 
 ### 5. Jetson orin nano 연결
 
