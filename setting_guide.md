@@ -1,6 +1,6 @@
 # Jetson Orin Nano 시스템 확인 가이드
 
-호스트 PC에서 SDK Manager를 통한 설치
+호스트 PC(Jetson이 아닌 Ubuntu 20.04가 설치되어있는 컴퓨터)에서 SDK Manager를 통한 설치
 
 1. 호스트 PC 요구사항
 ```
