@@ -94,7 +94,7 @@ cat /sys/devices/pwm-fan/target_pwm
 
 ## JetPack 구성 요소 확인
 
-### 1. JetPack 버전 확인
+### (1) JetPack 버전 확인
 
 ```bash
 # JetPack 버전 확인
@@ -104,7 +104,7 @@ apt show nvidia-jetpack
 dpkg -l | grep nvidia
 ```
 
-### 2. OpenCV 확인
+### (2) OpenCV 확인
 
 ```bash
 # OpenCV 버전 확인
@@ -123,7 +123,7 @@ sudo apt-get install cheese
 cheese
 ```
 
-### (3) OpenCV 및 ArUco 모듈 확인
+### (4) OpenCV 및 ArUco 모듈 확인
 
 #### OpenCV 버전 확인
 터미널에서 다음 명령어를 실행하여 OpenCV 버전을 확인합니다 (OpenCV 4.x 기준).
@@ -155,14 +155,14 @@ g++ -std=c++11 -o test_aruco test_aruco.cpp $(pkg-config --cflags --libs opencv4
 ```
 "OpenCV ArUco module is available!" 메시지가 출력되면 ArUco 모듈이 정상적으로 포함된 것입니다. 그렇지 않다면 아래 "4. OpenCV (opencv_contrib) 설치 방법 (필요시)" 섹션을 참고하여 OpenCV를 재설치해야 합니다.
 
-### (4) C++ 컴파일러 (g++) 확인
+### (5) C++ 컴파일러 (g++) 확인
 
 터미널에서 g++ 버전을 확인하여 C++17 이상을 지원하는지 확인합니다.
 ```bash
 g++ --version
 ```
 
-### (5) 필수 종속 패키지 설치 확인
+### (6) 필수 종속 패키지 설치 확인
 OpenCV 및 GUI 표시 등에 필요한 라이브러리들을 설치합니다.
 ```bash
 sudo apt-get update
@@ -173,79 +173,7 @@ sudo apt-get install libv4l-dev
 ```
 이 명령어들을 실행하면 누락된 필수 라이브러리들이 설치됩니다.
 
----
 
-## 4. OpenCV (opencv_contrib) 설치 방법 (필요시) 🛠️
-
-만약 Jetson에 설치된 OpenCV에 ArUco 모듈이 없거나 특정 버전의 OpenCV를 사용해야 하는 경우, 소스에서 `opencv_contrib`와 함께 빌드해야 합니다.
-
-1.  **필요한 패키지 설치**:
-    ```bash
-    sudo apt-get update
-    sudo apt-get install build-essential cmake git libgtk-3-dev libcanberra-gtk3-module \
-                         libjpeg-dev libpng-dev libtiff-dev \
-                         libavcodec-dev libavformat-dev libswscale-dev \
-                         libv4l-dev
-    # CUDA 관련 옵션을 사용하려면 libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev 등도 필요할 수 있습니다.
-    ```
-
-2.  **OpenCV 및 opencv_contrib 소스 클론**:
-    원하는 버전으로 태그를 체크아웃할 수 있습니다. (예: `git checkout 4.2.0`)
-    ```bash
-    cd ~
-    git clone [https://github.com/opencv/opencv.git](https://github.com/opencv/opencv.git)
-    git clone [https://github.com/opencv/opencv_contrib.git](https://github.com/opencv/opencv_contrib.git)
-    # 버전 일치를 위해 opencv와 opencv_contrib 모두 동일한 버전 태그로 체크아웃하는 것이 좋습니다.
-    # cd opencv && git checkout <원하는 버전> && cd ..
-    # cd opencv_contrib && git checkout <원하는 버전> && cd ..
-    ```
-
-3.  **빌드 디렉토리 생성 및 CMake 설정**:
-    ```bash
-    cd ~/opencv
-    mkdir build && cd build
-
-    cmake -D CMAKE_BUILD_TYPE=Release \
-          -D CMAKE_INSTALL_PREFIX=/usr/local \
-          -D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib/modules \
-          -D WITH_CUDA=ON \
-          -D CUDA_ARCH_BIN="<Jetson_Compute_Capability>" \ # 예: "5.3,6.2,7.2,8.7" (Jetson 모델에 맞게 설정)
-          -D CUDA_ARCH_PTX="" \
-          -D WITH_CUDNN=ON \
-          -D OPENCV_DNN_CUDA=ON \
-          -D ENABLE_FAST_MATH=1 \
-          -D CUDA_FAST_MATH=1 \
-          -D WITH_CUBLAS=1 \
-          -D WITH_GTK=ON \
-          -D WITH_OPENGL=ON \
-          -D BUILD_EXAMPLES=OFF \
-          -D BUILD_TESTS=OFF \
-          -D BUILD_PERF_TESTS=OFF \
-          ..
-    ```
-    * `CUDA_ARCH_BIN`: Jetson 모델의 Compute Capability를 확인하여 설정합니다. (예: Orin Nano는 8.7)
-        * Jetson Nano: 5.3
-        * Jetson TX2: 6.2
-        * Jetson Xavier NX: 7.2
-        * Jetson Orin Nano/NX/AGX: 8.7
-
-4.  **빌드 및 설치**:
-    Jetson 보드의 성능에 따라 시간이 매우 오래 걸릴 수 있습니다. (수 시간 소요 가능)
-    ```bash
-    make -j$(nproc)
-    sudo make install
-    ```
-
-5.  **설치 확인**:
-    ```bash
-    pkg-config --modversion opencv4
-    ```
-    설치 후, 필요하다면 `.bashrc`에 라이브러리 경로를 추가하거나 `ldconfig`를 실행합니다.
-    ```bash
-    sudo ldconfig
-    ```
-
----
 
 ## 5. C++ 코드 준비 📝
 
@@ -680,7 +608,7 @@ int main() {
 
 ---
 
-## 6. 코드 컴파일 ⚙️
+## 코드 컴파일 ⚙️
 
 터미널에서 저장된 C++ 소스 코드 파일이 있는 디렉토리로 이동한 후, 다음 명령어를 사용하여 컴파일합니다.
 **C++17 표준**을 사용해야 합니다 (코드 내 structured binding `auto [R_opt, t_opt] = ...;` 사용 때문).
@@ -698,7 +626,7 @@ g++ -std=c++17 -o apriltag_pose_estimation apriltag_pose_estimation.cpp $(pkg-co
 
 ---
 
-## 7. 프로그램 실행 ▶️
+## 프로그램 실행 ▶️
 
 컴파일이 성공적으로 완료되면, 실행 파일 (`apriltag_pose_estimation`)이 생성됩니다. 다음 명령어로 프로그램을 실행합니다.
 ```bash
@@ -712,12 +640,76 @@ g++ -std=c++17 -o apriltag_pose_estimation apriltag_pose_estimation.cpp $(pkg-co
 
 ---
 
-## 8. 추가 고려사항 및 디버깅 💡
+---
 
-* **카메라 소스**: 코드의 `cv::VideoCapture cap(0);` 부분은 첫 번째 연결된 카메라(/dev/video0)를 사용합니다. CSI 카메라나 다른 USB 카메라를 사용하려면 장치 번호를 변경하거나 GStreamer 파이프라인 문자열을 사용해야 할 수 있습니다.
-    * 예시 (CSI 카메라): `cv::VideoCapture("nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)640, height=(int)480, format=(string)NV12, framerate=(fraction)30/1 ! nvvidconv ! video/x-raw, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink");`
-* **성능 최적화**: Jetson 보드의 GPU 가속을 활용하기 위해 OpenCV가 CUDA 옵션과 함께 빌드되었는지 확인합니다. (JetPack 기본 OpenCV는 보통 CUDA 지원)
-* **오류 메시지**: 실행 중 오류가 발생하면 터미널에 출력되는 메시지를 자세히 확인하여 문제의 원인(카메라 연결, OpenCV 설치, 라이브러리 링크, 코드 로직 등)을 파악하고 해결합니다.
+## OpenCV (opencv_contrib) 설치 방법 (필요시) 🛠️
 
-```
+만약 Jetson에 설치된 OpenCV에 ArUco 모듈이 없거나 특정 버전의 OpenCV를 사용해야 하는 경우, 소스에서 `opencv_contrib`와 함께 빌드해야 합니다.
 
+1.  **필요한 패키지 설치**:
+    ```bash
+    sudo apt-get update
+    sudo apt-get install build-essential cmake git libgtk-3-dev libcanberra-gtk3-module \
+                         libjpeg-dev libpng-dev libtiff-dev \
+                         libavcodec-dev libavformat-dev libswscale-dev \
+                         libv4l-dev
+    # CUDA 관련 옵션을 사용하려면 libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev 등도 필요할 수 있습니다.
+    ```
+
+2.  **OpenCV 및 opencv_contrib 소스 클론**:
+    원하는 버전으로 태그를 체크아웃할 수 있습니다. (예: `git checkout 4.2.0`)
+    ```bash
+    cd ~
+    git clone [https://github.com/opencv/opencv.git](https://github.com/opencv/opencv.git)
+    git clone [https://github.com/opencv/opencv_contrib.git](https://github.com/opencv/opencv_contrib.git)
+    # 버전 일치를 위해 opencv와 opencv_contrib 모두 동일한 버전 태그로 체크아웃하는 것이 좋습니다.
+    # cd opencv && git checkout <원하는 버전> && cd ..
+    # cd opencv_contrib && git checkout <원하는 버전> && cd ..
+    ```
+
+3.  **빌드 디렉토리 생성 및 CMake 설정**:
+    ```bash
+    cd ~/opencv
+    mkdir build && cd build
+
+    cmake -D CMAKE_BUILD_TYPE=Release \
+          -D CMAKE_INSTALL_PREFIX=/usr/local \
+          -D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib/modules \
+          -D WITH_CUDA=ON \
+          -D CUDA_ARCH_BIN="<Jetson_Compute_Capability>" \ # 예: "5.3,6.2,7.2,8.7" (Jetson 모델에 맞게 설정)
+          -D CUDA_ARCH_PTX="" \
+          -D WITH_CUDNN=ON \
+          -D OPENCV_DNN_CUDA=ON \
+          -D ENABLE_FAST_MATH=1 \
+          -D CUDA_FAST_MATH=1 \
+          -D WITH_CUBLAS=1 \
+          -D WITH_GTK=ON \
+          -D WITH_OPENGL=ON \
+          -D BUILD_EXAMPLES=OFF \
+          -D BUILD_TESTS=OFF \
+          -D BUILD_PERF_TESTS=OFF \
+          ..
+    ```
+    * `CUDA_ARCH_BIN`: Jetson 모델의 Compute Capability를 확인하여 설정합니다. (예: Orin Nano는 8.7)
+        * Jetson Nano: 5.3
+        * Jetson TX2: 6.2
+        * Jetson Xavier NX: 7.2
+        * Jetson Orin Nano/NX/AGX: 8.7
+
+4.  **빌드 및 설치**:
+    Jetson 보드의 성능에 따라 시간이 매우 오래 걸릴 수 있습니다. (수 시간 소요 가능)
+    ```bash
+    make -j$(nproc)
+    sudo make install
+    ```
+
+5.  **설치 확인**:
+    ```bash
+    pkg-config --modversion opencv4
+    ```
+    설치 후, 필요하다면 `.bashrc`에 라이브러리 경로를 추가하거나 `ldconfig`를 실행합니다.
+    ```bash
+    sudo ldconfig
+    ```
+
+---
