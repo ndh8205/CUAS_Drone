@@ -10,22 +10,22 @@ OS: Ubuntu 20.04 또는 Ubuntu 22.04 (x86_64)
 
 2. SDK Manager 설치
 bash# 1. NVIDIA 개발자 계정 생성 (필수)
-# https://developer.nvidia.com 에서 계정 생성
+### https://developer.nvidia.com 에서 계정 생성
 
-# 2. SDK Manager 다운로드
-# https://developer.nvidia.com/nvidia-sdk-manager 에서 
-# sdkmanager_[version]_amd64.deb 파일 다운로드
+### 2. SDK Manager 다운로드
+### https://developer.nvidia.com/nvidia-sdk-manager 에서 
+### sdkmanager_[version]_amd64.deb 파일 다운로드
 
-# 3. SDK Manager 설치
+### 3. SDK Manager 설치
 sudo apt update
 sudo apt install ./sdkmanager_*_amd64.deb
 
-# 4. 의존성 패키지 설치
+### 4. 의존성 패키지 설치
 sudo apt install -y libgconf-2-4 libcanberra-gtk-module
 
-# 5. Jetson orin nano 연결
+### 5. Jetson orin nano 연결
 
-# 6. Jetson SDK에서 jetpack 설치 진행
+### 6. Jetson SDK에서 jetpack 설치 진행
 
 ## 시스템 업데이트 및 정보 확인
 
