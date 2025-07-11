@@ -38,8 +38,6 @@ sudo dd if=jetson-orin-nano-jp5.1.2-sd-card-image.img of=/dev/sdX bs=1M status=p
 ```bash
 sudo apt update
 sudo apt upgrade -y
-sudo apt dist-upgrade -y
-sudo reboot
 ```
 
 ---
@@ -57,9 +55,6 @@ lsb_release -a
 
 # Jetson 모델 확인
 cat /etc/nv_tegra_release
-
-# L4T 버전 확인
-head -n 1 /etc/nv_tegra_release
 
 # 보드 정보 확인
 sudo cat /proc/device-tree/model
