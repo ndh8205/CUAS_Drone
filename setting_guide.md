@@ -32,7 +32,9 @@ sudo apt install -y libgconf-2-4 libcanberra-gtk-module
 
 ### 6. Jetson SDK에서 jetpack 설치 진행
 
-## 시스템 업데이트 및 정보 확인
+
+
+## 시스템 업데이트 및 정보 확인 - Jetson Orin Nano
 
 ### 1. 시스템 업데이트
 
