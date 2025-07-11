@@ -595,16 +595,13 @@ int main() {
     return 0;
 }
 ```
-**주요 수정 및 확인 사항:**
+**주요 확인 사항:**
 * `main()` 함수 내의 카메라 매개변수 (`camera_matrix`, `dist_coeffs`)와 마커 길이 (`marker_length`)는 사용하는 카메라와 마커에 맞게 **반드시 수정**해야 합니다.
-* ArUco 사전 (`aruco_dict`)은 `cv::aruco::getPredefinedDictionary(...)`로 얻은 객체를 `cv::makePtr<cv::aruco::Dictionary>(dict_obj)`를 사용하여 `cv::Ptr`로 감싸줍니다. (OpenCV 버전에 따라 `new cv::aruco::Dictionary(temp_dict)` 방식이 필요할 수 있었으나, `makePtr`가 더 안전합니다.)
-* `DetectorParameters`는 `cv::makePtr<cv::aruco::DetectorParameters>()`로 생성합니다.
-* `orderPoints` 함수 내 `std::min_element` 등의 반환값에서 인덱스를 얻기 위해 `std::distance`를 사용하도록 수정했습니다.
-* `apriltagPoseEstimation` 함수 내 일부 변수명을 명확히 하고, 예외 처리 및 안정성을 위한 로직을 보강했습니다. `cv::normalize`를 시선 벡터 계산에 추가했습니다.
-* `solvePnP`의 fallback으로 `SOLVEPNP_IPPE` 와 `SOLVEPNP_ITERATIVE`를 시도하도록 했습니다.
-* `fixPoseAmbiguities` 함수에서 Z축 반전 외에 다른 축도 고려하여 오른손 좌표계를 유지하도록 수정하고, 유효성 검사를 추가했습니다.
-* 마커 포즈를 시각화하기 위해 `cv::drawFrameAxes` 함수를 사용했습니다. (OpenCV 4.x 기준)
-* 출력 텍스트에 마커 ID를 추가하고, 포맷을 일부 수정했습니다.
+* `DetectorParameters`는 `cv::makePtr<cv::aruco::DetectorParameters>()`로 생성.
+* `orderPoints` 함수 내 `std::min_element` 등의 반환값에서 인덱스를 얻기 위해 `std::distance`를 사용하도록 수정.
+* `apriltagPoseEstimation` 함수 내 일부 변수명을 명확히 하고, 예외 처리 및 안정성을 위한 로직을 보강했습니다. `cv::normalize`를 시선 벡터 계산에 추가.
+* `solvePnP`의 fallback으로 `SOLVEPNP_IPPE` 와 `SOLVEPNP_ITERATIVE`를 시도.
+* `fixPoseAmbiguities` 함수에서 Z축 반전 외에 다른 축도 고려하여 오른손 좌표계를 유지하도록 수정하고, 유효성 검사를 추가.
 
 ---
 
