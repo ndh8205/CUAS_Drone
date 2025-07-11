@@ -1,5 +1,32 @@
 # Jetson Orin Nano 시스템 확인 가이드
 
+호스트 PC에서 SDK Manager를 통한 설치
+1. 호스트 PC 요구사항
+
+OS: Ubuntu 20.04 또는 Ubuntu 22.04 (x86_64)
+메모리: 최소 8GB RAM (16GB 권장)
+저장공간: 최소 40GB 여유 공간
+인터넷: 안정적인 인터넷 연결
+
+2. SDK Manager 설치
+bash# 1. NVIDIA 개발자 계정 생성 (필수)
+# https://developer.nvidia.com 에서 계정 생성
+
+# 2. SDK Manager 다운로드
+# https://developer.nvidia.com/nvidia-sdk-manager 에서 
+# sdkmanager_[version]_amd64.deb 파일 다운로드
+
+# 3. SDK Manager 설치
+sudo apt update
+sudo apt install ./sdkmanager_*_amd64.deb
+
+# 4. 의존성 패키지 설치
+sudo apt install -y libgconf-2-4 libcanberra-gtk-module
+
+# 5. Jetson orin nano 연결
+
+# 6. Jetson SDK에서 jetpack 설치 진행
+
 ## 시스템 업데이트 및 정보 확인
 
 ### 1. 시스템 업데이트
