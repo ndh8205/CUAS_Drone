@@ -81,7 +81,6 @@ def main():
                                    msg.altitude if hasattr(msg, 'altitude') else 0, # RMC에는 고도가 없으므로 GGA 필요
                                    msg.num_sats if hasattr(msg, 'num_sats') else 0  # RMC에는 위성 수가 없음
                                    )
-            # 더 정확한 정보(고도, 위성 수)를 위해 GGA 문장도 파싱할 수 있습니다.
 
         except (pynmea2.ParseError, UnicodeDecodeError):
             continue
