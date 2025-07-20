@@ -1,0 +1,53 @@
+%YAML:1.0
+
+#--------------------------------------------------------------------------------------------
+# Camera Parameters for NASA Satellite
+#--------------------------------------------------------------------------------------------
+Camera.type: "PinHole"
+
+# Camera calibration
+# FOV: 1.047 rad (60 degrees), Resolution: 640x480
+# fx = width / (2 * tan(FOV/2)) = 640 / (2 * tan(1.047/2)) = 554.256
+Camera.fx: 554.256
+Camera.fy: 554.256
+Camera.cx: 320.0
+Camera.cy: 240.0
+
+Camera.k1: 0.0
+Camera.k2: 0.0
+Camera.p1: 0.0
+Camera.p2: 0.0
+
+Camera.width: 640
+Camera.height: 480
+Camera.fps: 30.0
+
+# Color order (1: RGB for simulation)
+Camera.RGB: 1
+
+# Depth threshold
+ThDepth: 40
+
+#--------------------------------------------------------------------------------------------
+# ORB Parameters (우주 환경 최적화)
+#--------------------------------------------------------------------------------------------
+ORBextractor.nFeatures: 2000
+ORBextractor.scaleFactor: 1.2
+ORBextractor.nLevels: 8
+ORBextractor.iniThFAST: 10
+ORBextractor.minThFAST: 5
+
+#--------------------------------------------------------------------------------------------
+# Viewer Parameters
+#--------------------------------------------------------------------------------------------
+Viewer.on: 1
+Viewer.KeyFrameSize: 0.1
+Viewer.KeyFrameLineWidth: 1
+Viewer.GraphLineWidth: 0.9
+Viewer.PointSize: 3
+Viewer.CameraSize: 0.15
+Viewer.CameraLineWidth: 3
+Viewer.ViewpointX: 0
+Viewer.ViewpointY: -10
+Viewer.ViewpointZ: -20
+Viewer.ViewpointF: 500
