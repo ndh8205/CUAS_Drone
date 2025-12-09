@@ -500,6 +500,6 @@ catkin build
 source devel/setup.bash
 
 
-rosrun my_drone_control drone_control.py
+rosrun drone_aruco_control drone_control.py
 
 ```
