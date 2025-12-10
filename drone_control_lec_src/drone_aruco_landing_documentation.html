@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>드론 ArUco 마커 기반 자율 착륙 시스템 - 코드 분석</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --text-primary: #1a1a1a;
+            --text-secondary: #4a4a4a;
+            --text-muted: #6b6b6b;
+            --bg-white: #ffffff;
+            --bg-light: #f8f9fa;
+            --bg-code: #f4f4f5;
+            --border-color: #e5e5e5;
+            --accent-blue: #2563eb;
+            --accent-green: #059669;
+            --accent-orange: #d97706;
+            --accent-purple: #7c3aed;
+            --accent-red: #dc2626;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--text-primary);
+            background: var(--bg-white);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 40px;
+        }
+
+        /* Header */
+        header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 40px;
+            margin-bottom: 50px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        header .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        header .meta {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            padding: 30px 35px;
+            margin-bottom: 50px;
+        }
+
+        .toc h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .toc ol {
+            list-style: none;
+            counter-reset: toc-counter;
+        }
+
+        .toc > ol > li {
+            counter-increment: toc-counter;
+            margin-bottom: 12px;
+        }
+
+        .toc > ol > li::before {
+            content: counter(toc-counter, decimal-leading-zero) ".";
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-right: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        .toc a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 400;
+            transition: color 0.15s;
+        }
+
+        .toc a:hover {
+            color: var(--accent-blue);
+        }
+
+        .toc ol ol {
+            margin-left: 35px;
+            margin-top: 8px;
+        }
+
+        .toc ol ol li {
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* Sections */
+        section {
+            margin-bottom: 60px;
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 35px 0 18px 0;
+            color: var(--text-primary);
+        }
+
+        h4 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 25px 0 12px 0;
+            color: var(--text-secondary);
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            padding: 20px 24px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            background: var(--bg-code);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+        }
+
+        /* Syntax Highlighting */
+        .keyword { color: var(--accent-purple); font-weight: 500; }
+        .string { color: var(--accent-green); }
+        .comment { color: var(--text-muted); font-style: italic; }
+        .function { color: var(--accent-blue); }
+        .number { color: var(--accent-orange); }
+        .class-name { color: var(--accent-red); }
+
+        /* Info Boxes */
+        .info-box {
+            padding: 20px 24px;
+            margin: 24px 0;
+            border-left: 3px solid;
+        }
+
+        .info-box.concept {
+            background: #f0f9ff;
+            border-color: var(--accent-blue);
+        }
+
+        .info-box.warning {
+            background: #fffbeb;
+            border-color: var(--accent-orange);
+        }
+
+        .info-box.important {
+            background: #fef2f2;
+            border-color: var(--accent-red);
+        }
+
+        .info-box.tip {
+            background: #f0fdf4;
+            border-color: var(--accent-green);
+        }
+
+        .info-box-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 8px;
+        }
+
+        .concept .info-box-title { color: var(--accent-blue); }
+        .warning .info-box-title { color: var(--accent-orange); }
+        .important .info-box-title { color: var(--accent-red); }
+        .tip .info-box-title { color: var(--accent-green); }
+
+        /* Diagrams */
+        .diagram {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            margin: 24px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .diagram-title {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-light);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        li strong {
+            color: var(--text-primary);
+        }
+
+        /* Formula Box */
+        .formula {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            padding: 20px 24px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+        }
+
+        .formula-label {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+
+        /* Parameter List */
+        .param-list {
+            margin: 16px 0;
+        }
+
+        .param-item {
+            display: flex;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .param-item:last-child {
+            border-bottom: none;
+        }
+
+        .param-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            color: var(--accent-purple);
+            min-width: 140px;
+        }
+
+        .param-type {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            min-width: 100px;
+        }
+
+        .param-desc {
+            color: var(--text-secondary);
+        }
+
+        /* Subsection styling */
+        .subsection {
+            margin-left: 0;
+            padding-left: 20px;
+            border-left: 2px solid var(--border-color);
+            margin-top: 30px;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 80px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Print styles */
+        @media print {
+            .container {
+                max-width: 100%;
+                padding: 20px;
+            }
+            
+            pre, .diagram {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>드론 ArUco 마커 기반 자율 착륙 시스템</h1>
+            <p class="subtitle">ROS/MAVROS를 활용한 비전 기반 정밀 착륙 코드 분석</p>
+            <p class="meta">대상: 학부 3학년 | 분야: 항공우주공학, 로보틱스</p>
+        </header>
+
+        <!-- Table of Contents -->
+        <nav class="toc">
+            <h2>목차</h2>
+            <ol>
+                <li><a href="#overview">시스템 개요</a></li>
+                <li><a href="#imports">라이브러리 임포트</a></li>
+                <li><a href="#pid">PID 제어기 클래스</a>
+                    <ol>
+                        <li><a href="#pid-theory">PID 제어 이론</a></li>
+                        <li><a href="#pid-implementation">구현 상세</a></li>
+                    </ol>
+                </li>
+                <li><a href="#drone-controller">DroneController 클래스</a>
+                    <ol>
+                        <li><a href="#init">초기화 (__init__)</a></li>
+                        <li><a href="#callbacks">콜백 함수들</a></li>
+                        <li><a href="#services">서비스 함수들</a></li>
+                        <li><a href="#control-loop">메인 제어 루프</a></li>
+                    </ol>
+                </li>
+                <li><a href="#coordinate">좌표계 변환</a></li>
+                <li><a href="#offboard">OFFBOARD 모드 안전 메커니즘</a></li>
+            </ol>
+        </nav>
+
+        <!-- Section 1: Overview -->
+        <section id="overview">
+            <h2>01. 시스템 개요</h2>
+            
+            <p>이 프로그램은 카메라로 ArUco 마커를 인식하고, PID 제어를 통해 드론을 마커 위치로 유도하여 정밀 착륙을 수행합니다.</p>
+
+            <h3>주요 구성 요소</h3>
+            <ul>
+                <li><strong>ArUco 마커 검출</strong> — OpenCV 기반 시각적 마커 인식</li>
+                <li><strong>PID 제어기</strong> — 위치 및 고도 제어</li>
+                <li><strong>MAVROS 인터페이스</strong> — 드론과의 ROS 통신</li>
+                <li><strong>상태 머신</strong> — 비행 모드 관리</li>
+            </ul>
+
+            <h3>작동 흐름</h3>
+            <div class="diagram">
+<div class="diagram-title">전체 시스템 흐름도</div>
+┌─────────────────┐
+│  FCU 연결 대기  │
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│ 초기 Setpoint   │  ← OFFBOARD 전환 조건 충족
+│   100회 발행    │    (PX4는 setpoint 스트림 필요)
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│    드론 Arm     │
+└────────┬────────┘
+         ▼
+┌─────────────────────────────────────────────┐
+│              메인 제어 루프                  │
+│  ┌───────────────────────────────────────┐ │
+│  │      마커 검출됨?                     │ │
+│  └──────────┬──────────────┬─────────────┘ │
+│         Yes │              │ No            │
+│             ▼              ▼               │
+│  ┌───────────────┐  ┌───────────────────┐ │
+│  │ 연속 검출 50회│  │ 카운터 리셋       │ │
+│  │ 이상?        │  │ 호버링 유지       │ │
+│  └───────┬──────┘  └───────────────────┘ │
+│      Yes │                                │
+│          ▼                                │
+│  ┌───────────────┐                       │
+│  │ OFFBOARD 전환 │                       │
+│  │ PID 제어 실행 │                       │
+│  └───────┬───────┘                       │
+│          ▼                                │
+│  ┌───────────────┐                       │
+│  │ 정렬 완료?    │ ──Yes──▶ 착륙         │
+│  └───────────────┘                       │
+└─────────────────────────────────────────────┘</div>
+        </section>
+
+        <!-- Section 2: Imports -->
+        <section id="imports">
+            <h2>02. 라이브러리 임포트</h2>
+
+            <h3>ROS 관련 라이브러리</h3>
+            
+            <h4>rospy</h4>
+            <p>ROS의 Python 클라이언트 라이브러리로, 노드 생성, 토픽 구독/발행, 서비스 호출 등 ROS의 핵심 기능을 제공합니다.</p>
+            <pre><code><span class="keyword">import</span> rospy
+
+<span class="comment"># 주요 함수</span>
+rospy.init_node(<span class="string">"노드이름"</span>)     <span class="comment"># 노드 초기화</span>
+rospy.Subscriber(토픽, 타입, 콜백)  <span class="comment"># 토픽 구독</span>
+rospy.Publisher(토픽, 타입)        <span class="comment"># 토픽 발행</span>
+rospy.Rate(<span class="number">20</span>)                   <span class="comment"># 루프 주기 설정 (Hz)</span></code></pre>
+
+            <h4>MAVROS 메시지 타입</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>메시지/서비스</th>
+                        <th>설명</th>
+                        <th>주요 필드</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>State</code></td>
+                        <td>드론 상태 정보</td>
+                        <td>connected, armed, mode</td>
+                    </tr>
+                    <tr>
+                        <td><code>SetMode</code></td>
+                        <td>비행 모드 변경</td>
+                        <td>custom_mode → mode_sent</td>
+                    </tr>
+                    <tr>
+                        <td><code>CommandBool</code></td>
+                        <td>Arming 제어</td>
+                        <td>value → success</td>
+                    </tr>
+                    <tr>
+                        <td><code>TwistStamped</code></td>
+                        <td>속도 명령</td>
+                        <td>twist.linear (x,y,z)</td>
+                    </tr>
+                    <tr>
+                        <td><code>PoseStamped</code></td>
+                        <td>위치/자세</td>
+                        <td>pose.position, orientation</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>센서 메시지</h4>
+            <pre><code><span class="keyword">from</span> sensor_msgs.msg <span class="keyword">import</span> CompressedImage, CameraInfo
+
+<span class="comment"># CompressedImage: JPEG 압축 이미지</span>
+<span class="comment"># - format: 압축 형식</span>
+<span class="comment"># - data: 바이트 배열</span>
+
+<span class="comment"># CameraInfo: 카메라 캘리브레이션</span>
+<span class="comment"># - K: 3x3 내부 파라미터 행렬</span>
+<span class="comment"># - D: 왜곡 계수</span></code></pre>
+        </section>
+
+        <!-- Section 3: PID -->
+        <section id="pid">
+            <h2>03. PID 제어기 클래스</h2>
+
+            <div id="pid-theory">
+                <h3>PID 제어 이론</h3>
+                
+                <div class="formula">
+                    출력 = K<sub>p</sub> × e(t) + K<sub>i</sub> × ∫e(t)dt + K<sub>d</sub> × de(t)/dt
+                    <div class="formula-label">여기서 e(t) = setpoint - measurement (오차)</div>
+                </div>
+
+                <div class="info-box concept">
+                    <div class="info-box-title">각 항의 역할</div>
+                    <p><strong>P (비례항)</strong>: 현재 오차에 비례하는 출력. Kp↑ → 빠른 응답, 오버슈트 가능</p>
+                    <p><strong>I (적분항)</strong>: 누적 오차에 비례. 정상상태 오차 제거. Wind-up 주의</p>
+                    <p><strong>D (미분항)</strong>: 오차 변화율에 비례. 댐핑 효과, 노이즈에 민감</p>
+                </div>
+
+                <h4>튜닝 가이드라인</h4>
+                <ol>
+                    <li>Ki = 0, Kd = 0으로 시작</li>
+                    <li>Kp를 증가시키며 적절한 응답 속도 찾기</li>
+                    <li>진동 발생 시 Kd 추가하여 안정화</li>
+                    <li>정상상태 오차 있으면 Ki 소량 추가</li>
+                </ol>
+            </div>
+
+            <div id="pid-implementation">
+                <h3>구현 상세</h3>
+
+                <h4>생성자 파라미터</h4>
+                <div class="param-list">
+                    <div class="param-item">
+                        <span class="param-name">Kp</span>
+                        <span class="param-type">float</span>
+                        <span class="param-desc">비례 이득. 오차에 대한 즉각적 반응 강도</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-name">Ki</span>
+                        <span class="param-type">float</span>
+                        <span class="param-desc">적분 이득. 누적 오차에 대한 반응</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-name">Kd</span>
+                        <span class="param-type">float</span>
+                        <span class="param-desc">미분 이득. 오차 변화율에 대한 반응</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-name">setpoint</span>
+                        <span class="param-type">float</span>
+                        <span class="param-desc">목표값 (기본값: 0.0)</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-name">output_limits</span>
+                        <span class="param-type">tuple</span>
+                        <span class="param-desc">출력 제한 (lower, upper)</span>
+                    </div>
+                </div>
+
+                <h4>이 코드의 PID 설정</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>제어축</th>
+                            <th>Kp</th>
+                            <th>Ki</th>
+                            <th>Kd</th>
+                            <th>출력 제한</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>X (전후)</td>
+                            <td>0.5</td>
+                            <td>0.0</td>
+                            <td>0.1</td>
+                            <td>±0.5 m/s</td>
+                        </tr>
+                        <tr>
+                            <td>Y (좌우)</td>
+                            <td>0.5</td>
+                            <td>0.0</td>
+                            <td>0.1</td>
+                            <td>±0.5 m/s</td>
+                        </tr>
+                        <tr>
+                            <td>Z (고도)</td>
+                            <td>0.3</td>
+                            <td>0.0</td>
+                            <td>0.05</td>
+                            <td>±0.3 m/s</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="info-box tip">
+                    <div class="info-box-title">참고</div>
+                    <p>Ki = 0으로 설정되어 있어 순수 PD 제어기로 동작합니다. 정상상태 오차가 발생할 수 있으나 안정성을 우선합니다.</p>
+                </div>
+
+                <h4>compute() 메서드 계산 과정</h4>
+                <pre><code><span class="keyword">def</span> <span class="function">compute</span>(<span class="keyword">self</span>, measurement):
+    <span class="comment"># 1. 시간 계산</span>
+    current_time = time.time()
+    delta_time = current_time - self._prev_time
+    
+    <span class="comment"># 2. 오차 계산</span>
+    error = self.setpoint - measurement
+    
+    <span class="comment"># 3. 적분항 (사각형 근사)</span>
+    <span class="comment"># ∫e(t)dt ≈ Σ e(k) × Δt</span>
+    self._integral += error * delta_time
+    
+    <span class="comment"># 4. 미분항 (후진 차분)</span>
+    <span class="comment"># de/dt ≈ [e(k) - e(k-1)] / Δt</span>
+    derivative = (error - self._prev_error) / delta_time
+    
+    <span class="comment"># 5. PID 출력</span>
+    output = self.Kp * error + self.Ki * self._integral + self.Kd * derivative
+    
+    <span class="comment"># 6. 출력 제한 (Saturation)</span>
+    output = clamp(output, lower, upper)
+    
+    <span class="keyword">return</span> output</code></pre>
+            </div>
+        </section>
+
+        <!-- Section 4: DroneController -->
+        <section id="drone-controller">
+            <h2>04. DroneController 클래스</h2>
+
+            <div id="init">
+                <h3>초기화 (__init__)</h3>
+
+                <h4>ROS 통신 구조</h4>
+                
+                <p><strong>Subscribers (토픽 구독)</strong></p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>토픽</th>
+                            <th>용도</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>/iris/usb_cam/camera_info</code></td>
+                            <td>카메라 내부 파라미터</td>
+                        </tr>
+                        <tr>
+                            <td><code>/iris/usb_cam/image_raw/compressed</code></td>
+                            <td>압축 이미지 (ArUco 검출용)</td>
+                        </tr>
+                        <tr>
+                            <td><code>/mavros/global_position/rel_alt</code></td>
+                            <td>상대 고도 (지면 기준)</td>
+                        </tr>
+                        <tr>
+                            <td><code>/mavros/state</code></td>
+                            <td>드론 상태 (모드, 연결)</td>
+                        </tr>
+                        <tr>
+                            <td><code>/mavros/local_position/velocity_body</code></td>
+                            <td>Body frame 속도</td>
+                        </tr>
+                        <tr>
+                            <td><code>/mavros/local_position/pose</code></td>
+                            <td>위치 및 자세</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p><strong>Publisher (토픽 발행)</strong></p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>토픽</th>
+                            <th>용도</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>/mavros/setpoint_velocity/cmd_vel</code></td>
+                            <td>속도 명령 (Body frame)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4>카메라 내부 파라미터 행렬</h4>
+                <div class="diagram">
+        ┌ fx   0  cx ┐
+    K = │  0  fy  cy │
+        └  0   0   1 ┘
+
+fx, fy: 초점 거리 [픽셀]
+cx, cy: 주점 (이미지 중심) [픽셀]</div>
+
+                <h4>ArUco 딕셔너리</h4>
+                <p><code>DICT_4X4_1000</code>을 사용합니다:</p>
+                <ul>
+                    <li><strong>4×4</strong>: 작은 비트 수 → 빠른 검출, 원거리 인식 유리</li>
+                    <li><strong>1000개</strong>: 충분한 마커 ID 제공</li>
+                </ul>
+            </div>
+
+            <div id="callbacks">
+                <h3>콜백 함수들</h3>
+
+                <h4>image_callback() — 핵심 마커 검출</h4>
+                <p>이 함수는 카메라 이미지를 받아 ArUco 마커를 검출하고 오차를 계산합니다.</p>
+
+                <pre><code><span class="comment"># 1단계: 압축 이미지 → OpenCV 이미지 변환</span>
+np_arr = np.frombuffer(msg.data, np.uint8)
+self.current_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+<span class="comment"># 2단계: ArUco 마커 검출</span>
+corners, ids, rejected = cv2.aruco.detectMarkers(
+    self.current_image, 
+    self.aruco_dict, 
+    parameters=self.aruco_params
+)
+
+<span class="comment"># 3단계: Pose 추정</span>
+rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(
+    corners, self.marker_size, 
+    self.camera_matrix, self.dist_coeffs
+)</code></pre>
+
+                <div class="info-box concept">
+                    <div class="info-box-title">detectMarkers() 반환값</div>
+                    <p><strong>corners</strong>: 마커 코너 좌표. 각 마커는 4개 코너의 (x, y) 좌표</p>
+                    <p><strong>ids</strong>: 검출된 마커들의 ID (numpy array)</p>
+                    <p><strong>rejected</strong>: 후보였으나 검증 실패한 영역 (디버깅용)</p>
+                </div>
+
+                <h4>정규화 오차 계산</h4>
+                <pre><code><span class="comment"># 마커 중심점 계산</span>
+marker_center = np.mean(corners[<span class="number">0</span>][<span class="number">0</span>], axis=<span class="number">0</span>)
+
+<span class="comment"># 픽셀 오차</span>
+pixel_error_x = marker_center[<span class="number">0</span>] - center_x  <span class="comment"># 양수: 오른쪽</span>
+pixel_error_y = marker_center[<span class="number">1</span>] - center_y  <span class="comment"># 양수: 아래</span>
+
+<span class="comment"># 정규화 (-1 ~ 1 범위)</span>
+self.norm_x_error = pixel_error_x / (w/<span class="number">2</span>)
+self.norm_y_error = pixel_error_y / (h/<span class="number">2</span>)</code></pre>
+
+                <div class="diagram">
+<div class="diagram-title">이미지 좌표계와 정규화 오차</div>
+(0,0)───────────────────────────────▶ X (우측 +)
+  │          norm_x = -1  │  norm_x = +1
+  │                       │
+  │         ┌─────────────┼─────────────┐
+  │         │             │             │
+  │  norm_y │      ───────●───────      │ norm_y
+  │   = -1  │       (중심, 0,0)        │  = +1
+  │         │             │             │
+  │         └─────────────┼─────────────┘
+  │                       │
+  ▼
+Y (하단 +)</div>
+
+                <h4>attitude_callback() — 자세 변환</h4>
+                <pre><code><span class="comment"># 쿼터니언 → 오일러 각도 변환</span>
+(self.roll, self.pitch, self.yaw) = transformations.euler_from_quaternion(
+    [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
+)</code></pre>
+
+                <div class="diagram">
+<div class="diagram-title">오일러 각도 (Euler Angles)</div>
+Roll (φ): X축 회전 - 좌우 기울기
+┌─────┐         ┌─────┐
+│  ○  │   →     │  ◐  │   (+Roll: 우측 기울임)
+└─────┘         └─────┘
+
+Pitch (θ): Y축 회전 - 전후 기울기
+══════         ══╲══
+  ↓              ↓  (+Pitch: 기수 하강)
+
+Yaw (ψ): Z축 회전 - 좌우 회전
+  ↑              ↗
+══════         ══════  (+Yaw: 시계 반대 방향)</div>
+            </div>
+
+            <div id="services">
+                <h3>서비스 함수들</h3>
+
+                <h4>arm() — 모터 활성화</h4>
+                <pre><code><span class="keyword">def</span> <span class="function">arm</span>(self):
+    rospy.wait_for_service(<span class="string">'/mavros/cmd/arming'</span>)
+    arm_service = rospy.ServiceProxy(<span class="string">'/mavros/cmd/arming'</span>, CommandBool)
+    response = arm_service(<span class="keyword">True</span>)  <span class="comment"># True = Arm, False = Disarm</span></code></pre>
+
+                <h4>set_mode() — 비행 모드 변경</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>모드</th>
+                            <th>설명</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>OFFBOARD</code></td>
+                            <td>외부 컴퓨터 제어 모드</td>
+                        </tr>
+                        <tr>
+                            <td><code>AUTO.LAND</code></td>
+                            <td>자동 착륙 모드</td>
+                        </tr>
+                        <tr>
+                            <td><code>MANUAL</code></td>
+                            <td>수동 조종 모드</td>
+                        </tr>
+                        <tr>
+                            <td><code>STABILIZED</code></td>
+                            <td>자세 안정화 모드</td>
+                        </tr>
+                        <tr>
+                            <td><code>POSITION</code></td>
+                            <td>GPS 위치 유지 모드</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="control-loop">
+                <h3>메인 제어 루프</h3>
+
+                <h4>control_drone() 동작 순서</h4>
+                <ol>
+                    <li><strong>FCU 연결 대기</strong>: Pixhawk와 mavros 연결 확인</li>
+                    <li><strong>초기 Setpoint 발행</strong>: 100회 × 50ms = 5초 (OFFBOARD 전환 조건)</li>
+                    <li><strong>드론 Arming</strong>: 모터 활성화</li>
+                    <li><strong>메인 루프</strong>: 마커 검출 및 PID 제어</li>
+                </ol>
+
+                <h4>PID 제어 축 매핑</h4>
+                <pre><code><span class="comment"># X축 속도 (전후): 카메라 Y 오차로 제어</span>
+vel_cmd.twist.linear.x = self.pid_y.compute(self.norm_y_error)
+
+<span class="comment"># Y축 속도 (좌우): 카메라 X 오차로 제어</span>
+vel_cmd.twist.linear.y = self.pid_x.compute(self.norm_x_error)
+
+<span class="comment"># Z축 속도 (고도): 현재 고도로 제어</span>
+vel_cmd.twist.linear.z = self.pid_z.compute(self.my_alt)</code></pre>
+
+                <div class="info-box important">
+                    <div class="info-box-title">좌표계 매핑 주의</div>
+                    <p>카메라 Y축 (상하) → 드론 X축 (전후)</p>
+                    <p>카메라 X축 (좌우) → 드론 Y축 (좌우)</p>
+                    <p>마커가 이미지 아래에 있으면 (norm_y > 0), 드론은 전진해야 합니다.</p>
+                </div>
+
+                <h4>착륙 조건</h4>
+                <pre><code><span class="keyword">if</span> (abs(self.norm_x_error) &lt; <span class="number">0.05</span> <span class="keyword">and</span>    <span class="comment"># X 오차 &lt; 5%</span>
+    abs(self.norm_y_error) &lt; <span class="number">0.05</span> <span class="keyword">and</span>    <span class="comment"># Y 오차 &lt; 5%</span>
+    abs(alt_error) &lt; <span class="number">0.1</span>):               <span class="comment"># 고도 오차 &lt; 10cm</span>
+    self.land()  <span class="comment"># AUTO.LAND 모드로 전환</span></code></pre>
+            </div>
+        </section>
+
+        <!-- Section 5: Coordinate -->
+        <section id="coordinate">
+            <h2>05. 좌표계 변환</h2>
+
+            <div class="diagram">
+<div class="diagram-title">좌표계 변환 관계</div>
+이미지 좌표계        카메라 좌표계        드론 Body Frame
+(픽셀)               (미터)               (NED)
+
+ (0,0)───▶ u        ───▶ X              ↑ X (전방)
+   │                  │                  │
+   ▼ v                ▼ Y                └──▶ Y (우측)
+                      ↓ Z (전방)              Z ↓ (하방)
+
+변환 매핑:
+• 이미지 u (우측+) → 드론 Y (우측+)
+• 이미지 v (하단+) → 드론 X (전방+)
+• 카메라 Z (전방)  → 드론 거리</div>
+
+            <h3>드론 Body Frame (NED)</h3>
+            <div class="diagram">
+            +X (전방)
+               ↑
+               │
+  +Y (우측) ←──┼──→
+               │
+               ↓
+            +Z (하방)
+
+NED: North-East-Down 좌표계를 드론에 적용</div>
+        </section>
+
+        <!-- Section 6: OFFBOARD -->
+        <section id="offboard">
+            <h2>06. OFFBOARD 모드 안전 메커니즘</h2>
+
+            <div class="info-box warning">
+                <div class="info-box-title">OFFBOARD 모드 진입 조건</div>
+                <p><strong>조건 1</strong>: 모드 전환 전 최소 수 개의 setpoint 발행 필요 (이 코드: 100개)</p>
+                <p><strong>조건 2</strong>: 지속적인 setpoint 수신. 2초 이상 미수신 시 failsafe 발동</p>
+                <p><strong>조건 3</strong>: 드론이 Armed 상태여야 함</p>
+            </div>
+
+            <h3>마커 검출 카운터</h3>
+            <p>안전을 위해 50회 연속 검출 시에만 OFFBOARD 모드로 전환합니다.</p>
+            <ul>
+                <li>단발성 오검출 방지</li>
+                <li>20Hz에서 50회 = 2.5초 연속 검출 필요</li>
+                <li>마커 미검출 시 카운터 리셋</li>
+            </ul>
+
+            <h3>제어 블록 다이어그램</h3>
+            <div class="diagram">
+목표 (0,0)    ┌──────┐    ┌─────────┐    ┌─────────┐
+───────●───▶│ 오차  │──▶│ PID     │──▶│ 드론    │────┐
+       │     │ 계산  │    │ 제어기  │    │         │    │
+       │     └──────┘    └─────────┘    └─────────┘    │
+       │                                               │
+       │     ┌──────────────────────────────────────┐  │
+       │     │                                      │  │
+       └─────│     카메라 + ArUco 검출              │◀─┘
+             │       (측정값)                       │
+             └──────────────────────────────────────┘
+
+목표: 마커를 화면 중앙에 위치시키는 것 (norm_error = 0)</div>
+        </section>
+
+        <footer>
+            <p>드론 ArUco 마커 기반 자율 착륙 시스템 문서</p>
+        </footer>
+    </div>
+</body>
+</html>
