@@ -676,9 +676,9 @@ class DroneController:
         # ----------------------------------------------------------------------
         # 4. PID 제어기 설정
         # ----------------------------------------------------------------------
-        self.pid_x = PIDController(Kp=0.5, Ki=0.0, Kd=0.1, output_limits=(-0.5, 0.5))
-        self.pid_y = PIDController(Kp=0.5, Ki=0.0, Kd=0.1, output_limits=(-0.5, 0.5))
-        self.pid_z = PIDController(Kp=0.3, Ki=0.0, Kd=0.05, output_limits=(-0.3, 0.3))
+        self.pid_x = PIDController(Kp=135.0, Ki=240.0, Kd=0.0, output_limits=(-0.5, 0.5))
+        self.pid_y = PIDController(Kp=321.0, Ki=-151.0, Kd=0.0, output_limits=(-0.5, 0.5))
+        self.pid_z = PIDController(Kp=125.0, Ki=-91.0, Kd=0.05, output_limits=(-0.3, 0.3))
         """
         PID 제어기 인스턴스 생성
         
