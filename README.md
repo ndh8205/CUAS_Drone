@@ -502,4 +502,7 @@ source devel/setup.bash
 
 rosrun drone_aruco_control drone_control.py
 
+chmod +x px4_gazebo_setup.sh
+./px4_gazebo_setup.sh
+
 ```
