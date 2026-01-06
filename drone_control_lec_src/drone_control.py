@@ -90,9 +90,15 @@ class DroneController:
         self.aruco_params = cv2.aruco.DetectorParameters_create()
 
         # PID 컨트롤러 설정
-        self.pid_x = PIDController(Kp=135.0, Ki=240.0, Kd=0.0, output_limits=(-0.5, 0.5))
-        self.pid_y = PIDController(Kp=321.0, Ki=-151.0, Kd=0.0, output_limits=(-0.5, 0.5))
-        self.pid_z = PIDController(Kp=125, Ki=-91.0, Kd=0.05, output_limits=(-0.3, 0.3))
+        # PID 게인 튜닝의 망한 예시
+        # self.pid_x = PIDController(Kp=135.0, Ki=240.0, Kd=0.0, output_limits=(-0.5, 0.5))
+        # self.pid_y = PIDController(Kp=321.0, Ki=-151.0, Kd=0.0, output_limits=(-0.5, 0.5))
+        # self.pid_z = PIDController(Kp=125, Ki=-91.0, Kd=0.05, output_limits=(-0.3, 0.3))
+        
+        # PID 게인 튜닝의 잘된 예시
+        self.pid_x = PIDController(Kp=0.5, Ki=0.0, Kd=0.1, output_limits=(-0.5, 0.5))
+        self.pid_y = PIDController(Kp=0.5, Ki=0.0, Kd=0.1, output_limits=(-0.5, 0.5))
+        self.pid_z = PIDController(Kp=0.3, Ki=0.0, Kd=0.05, output_limits=(-0.3, 0.3))
 
         # 서브스크라이버 설정
         self.camera_info_sub = rospy.Subscriber('/iris/usb_cam/camera_info', CameraInfo, self.camera_info_callback)
