@@ -75,7 +75,7 @@ Windows 버전: 10.0.19045.6456
 
 ---
 
-## 2. WSL2 설정 (최적화때 필요하므로 초기 설치에는 건너 뛰는걸 추천 3번으로)
+## 2. WSL2 설정
 
 ### 2.1 Windows 측: `%UserProfile%\.wslconfig`
 
@@ -348,20 +348,81 @@ make launch
 - NOS Engine 서버
 - 각종 하드웨어 시뮬레이터
 
-### 7.6 중지
+### 7.6 실행 화면 설명
+
+`make launch` 실행 시 여러 창이 열림:
+
+#### 42 시뮬레이터 창 (3개)
+
+| 창 | 설명 |
+|------|------|
+| **42 Cam** | 우주선 3D 시각화. 자세(attitude), 회전, 태양 대비 방향 표시. 우주선이 정상이면 천천히 회전 |
+| **42 Map** | 지구 위 우주선 위치 (Ground Track). 궤도 경로와 현재 위치 표시 |
+| **Unit Sphere Viewer** | 우주선 자세를 단위 구(unit sphere) 위에 시각화. L1, L2, L3 축(LVLH 좌표계)이 표시되어 우주선 방향/회전 상태 확인 |
+
+> **42**: NASA GSFC에서 개발한 오픈소스 궤도/자세 역학 시뮬레이터
+> 
+> **LVLH** (Local Vertical Local Horizontal): 지구 중심 기준 좌표계. L1=속도 방향, L2=궤도면 수직, L3=지구 방향
+
+#### COSMOS/OpenC3 (웹 브라우저)
+
+지상국 소프트웨어. 브라우저에서 `http://localhost:2900` 접속:
+
+| 기능 | 설명 |
+|------|------|
+| **Command Sender** | 우주선에 명령 전송 |
+| **Telemetry Viewer** | 우주선 텔레메트리 실시간 모니터링 |
+| **Packet Viewer** | 수신된 패킷 상세 보기 |
+| **Script Runner** | 자동화 스크립트 실행 |
+| **Data Extractor** | 텔레메트리 데이터 추출/분석 |
+
+> 텔레메트리 활성화: Command Sender → CFS_RADIO → TO_ENABLE_OUTPUT 전송
+
+#### 터미널 창들
+
+| 터미널 | 내용 |
+|--------|------|
+| **NOS3 Flight Software** | cFS 비행 소프트웨어 로그. 앱 초기화, 이벤트 메시지 출력 |
+| **Simulators** | 하드웨어 시뮬레이터 탭들 (GPS, IMU, CSS, FSS, 등) |
+| **NOS Time Driver** | 시뮬레이션 시간 동기화 |
+
+#### 시뮬레이터 종류
+
+| 시뮬레이터 | 시뮬레이션 대상 |
+|------------|----------------|
+| **sample_sim** | 샘플 센서 |
+| **generic_css_sim** | Coarse Sun Sensor (태양 센서) |
+| **generic_fss_sim** | Fine Sun Sensor |
+| **generic_imu_sim** | Inertial Measurement Unit (관성 측정 장치) |
+| **generic_mag_sim** | Magnetometer (자력계) |
+| **generic_torquer_sim** | Magnetic Torquer (자기 토커) |
+| **generic_reaction_wheel_sim** | Reaction Wheel (반작용 휠) |
+| **generic_eps_sim** | Electrical Power System (전력 시스템) |
+| **generic_radio_sim** | Radio (통신) |
+
+> 각 시뮬레이터는 42에서 환경 데이터를 받아 해당 하드웨어의 출력을 시뮬레이션
+
+#### 정상 상태 확인
+
+1. **42 창**: 우주선이 보이고 천천히 회전
+2. **COSMOS**: 텔레메트리 데이터 수신 중 (활성화 후)
+3. **Flight Software 터미널**: `CFE_ES` 초기화 완료 메시지
+4. **시뮬레이터 터미널**: `Construction complete` 메시지
+
+### 7.7 중지
 
 ```bash
 make stop
 ```
 
-### 7.7 클린 빌드 (문제 발생 시)
+### 7.8 클린 빌드 (문제 발생 시)
 
 ```bash
 make clean
 make
 ```
 
-### 7.8 주요 Makefile 타겟
+### 7.9 주요 Makefile 타겟
 
 | 명령어 | 설명 |
 |--------|------|
@@ -372,7 +433,7 @@ make
 | `make clean` | 빌드 파일 삭제 |
 | `make debug` | 디버그 모드 실행 |
 
-### 7.9 Ubuntu 24.04 빌드 시 주의사항
+### 7.10 Ubuntu 24.04 빌드 시 주의사항
 
 Ubuntu 22.04에서도 일부 문제가 보고됨 (Issue #255):
 - 42 창이 검은 화면으로 표시
