@@ -358,11 +358,9 @@ make launch
 |------|------|
 | **42 Cam** | 우주선 3D 시각화. 자세(attitude), 회전, 태양 대비 방향 표시. 우주선이 정상이면 천천히 회전 |
 | **42 Map** | 지구 위 우주선 위치 (Ground Track). 궤도 경로와 현재 위치 표시 |
-| **Unit Sphere Viewer** | 우주선 자세를 단위 구(unit sphere) 위에 시각화. L1, L2, L3 축(LVLH 좌표계)이 표시되어 우주선 방향/회전 상태 확인 |
+| **42 Orrery** | 태양계 뷰. 지구, 달, 태양 등 천체 위치와 우주선 궤도 표시 |
 
-> **42**: NASA GSFC에서 개발한 오픈소스 궤도/자세 역학 시뮬레이터
-> 
-> **LVLH** (Local Vertical Local Horizontal): 지구 중심 기준 좌표계. L1=속도 방향, L2=궤도면 수직, L3=지구 방향
+> 42는 NASA GSFC에서 개발한 오픈소스 궤도/자세 역학 시뮬레이터
 
 #### COSMOS/OpenC3 (웹 브라우저)
 
